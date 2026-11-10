@@ -193,13 +193,6 @@
     ];
 
     
-    const LEGACY_PRESERVED_SPEC_IDS = [
-      { id: 'ALL' }, { id: 'PHOTOS' }, { id: 'VIDEOS' }, { id: 'ALBUMS' }, { id: 'FOLDERS' }, { id: 'RECENT' },
-      { id: 'overview' }, { id: 'devices' }, { id: 'activity' }, { id: 'settings' },
-      { id: 'profile' }, { id: 'google' }, { id: 'backup' }, { id: 'allocation' }, { id: 'notifications' }, { id: 'sessions' },
-      { id: 'conn_gdrive_2' }, { id: 'dev_s24_ultra' }, { id: 'dev_pixel_8' }, { id: 'dev_win_workstation' }, { id: 'dev_sim_' }
-    ];
-
     const DEVICE_FOLDER_CATEGORIES = [
       'All Photos',
       'Camera',
@@ -1522,7 +1515,7 @@
                 <div class="text-xs text-emerald-400 font-mono truncate">Stored in private cloud metadata</div>
                 <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
                   <span class="text-slate-500">${m.captureDate.split(' ')[0]}</span>
-                  <button onclick="inspectMedia('${m.id}')" class="text-emerald-400 font-semibold hover:underline">Open / Play →</button>
+                  <button onclick="inspectMedia('${m.id}')" class="text-emerald-400 font-semibold hover:underline">Download →</button>
                 </div>
               </div>
             `).join('')}
