@@ -1,16 +1,16 @@
 # My Private Cloud Hub
 
-A private, single-owner cloud storage hub. The repository now contains a Cloudflare Worker API scaffold, a D1 schema, an R2 storage binding, and a frontend wired for account login and device registration.
+A private, single-owner cloud storage hub. The repository contains a Cloudflare Worker API scaffold, a D1 schema, an R2 storage binding, and a frontend for account login and device registration.
 
-> **Deployment status:** Source code has been committed, but Cloudflare resources have not been provisioned and the service is not online yet. Do not use the app for real files until the Cloudflare setup below is completed and tested.
+> **Deployment status:** Source code has been committed, but the service is not confirmed online. Do not use the app for real files until Cloudflare setup and live tests are complete.
 
 ## Architecture
 
-- **Frontend + API:** One Cloudflare Worker deployment. The Worker serves the static frontend and handles same-origin `/api/*` requests.
+- **Frontend + API:** One Cloudflare Worker deployment serving the static frontend and same-origin `/api/*` requests.
 - **Backend:** Cloudflare Workers (`src/worker.js`).
 - **Database:** Cloudflare D1 (`migrations/0001_initial.sql`).
-- **Object storage:** Cloudflare R2 bucket binding named `BUCKET`.
-- **Authentication:** First-owner-only registration, PBKDF2-SHA-256 password hashing, server-side session records, HttpOnly/Secure/SameSite cookie, and login throttling.
+- **Object storage:** Private Cloudflare R2 bucket binding named `BUCKET`.
+- **Authentication:** First-owner-only registration, PBKDF2-SHA-256 password hashing, server-side sessions, secure HttpOnly cookie, and login throttling.
 - **Devices:** Authenticated device registration and revocation endpoints.
 - **Files:** Private R2 upload/download endpoints and D1 metadata. Initial upload endpoint limit: 100 MB per request.
 
@@ -24,22 +24,18 @@ A private, single-owner cloud storage hub. The repository now contains a Cloudfl
 - `DELETE /api/devices/:id` — revoke a registered device.
 - `GET /api/files`, `PUT /api/files/upload`, and `GET /api/files/:id` — list, upload and download private objects.
 
-External Google Drive, OneDrive, Dropbox, Google Photos, pCloud, MEGA and other provider integrations are **not implemented**. Native Android background backup / WorkManager is **not implemented**. Device registration records the browser/device that makes the authenticated request; it does not install or remotely inspect another device.
+External Google Drive, OneDrive, Dropbox, Google Photos, pCloud, MEGA and other provider integrations are **not implemented**. Native Android background backup / WorkManager is **not implemented**.
 
-## Required Cloudflare setup (owner action)
+## Required Cloudflare setup
 
-1. Sign in to the Cloudflare dashboard and select your account.
-2. Use the existing D1 database named `my-private-cloud-hub` with Database ID `dcd10925-8bd2-46bc-b229-e15bc3d90215`; verify it matches the Cloudflare Dashboard and `wrangler.toml`.
-4. Create a **private R2 bucket** named `my-private-cloud-hub-files`.
-5. In GitHub, open this repository's **Settings → Secrets and variables → Actions** and add:
-   - `CLOUDFLARE_API_TOKEN` — token with Workers Scripts:Edit, D1:Edit, R2:Edit, and Account:Read permissions for the correct account.
-   - `CLOUDFLARE_ACCOUNT_ID` — your Cloudflare Account ID.
-6. Confirm that the Cloudflare account has a Workers subdomain enabled. The Worker will be deployed with a `workers.dev` URL.
-7. In GitHub, open **Actions → Deploy Cloudflare Worker → Run workflow** (or push a change to the deployment paths).
-8. Wait for the deployment to finish. Open the resulting Worker URL on Android and desktop. The workflow applies the D1 migration before deploying.
-9. On the first visit, create your Owner Account with a strong unique password of at least 12 characters. Public sign-up is closed after the first account exists.
+1. Use the existing D1 database named `my-private-cloud-hub-db` with Database ID `dcd10925-8bd2-46bc-b229-e15bc3d90215`. This exact name and ID are configured in `wrangler.toml` and the deployment workflow.
+2. Create a **private R2 bucket** named `my-private-cloud-hub-files`.
+3. Add GitHub Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Never paste the token into chat or commit it.
+4. Enable a Workers subdomain in Cloudflare if it is not already enabled.
+5. In GitHub, open **Actions → Deploy Cloudflare Worker → Run workflow**, or push a change to a watched deployment path.
+6. After deployment, test registration, login, file upload and download with non-sensitive test files before relying on the service.
 
-**Never paste the Cloudflare API token or password into chat or commit it to this repository.** Add the token only as a GitHub Actions secret.
+The Cloudflare API token must have the required Workers, D1, R2 and account permissions for the correct account.
 
 ## Local development
 
@@ -48,25 +44,22 @@ Install Node.js 22+, then:
 ```bash
 npm install
 npx wrangler login
-npx wrangler d1 migrations apply my-private-cloud-hub --local
+npx wrangler d1 migrations apply my-private-cloud-hub-db --local
 mkdir -p public && cp index.html public/index.html
 npm run dev
 ```
 
-For production, provision the remote D1 and R2 resources first, then run the GitHub Actions deployment workflow.
-
 ## Important limitations before production use
 
-- The deployment is not live until the owner completes Cloudflare provisioning and adds GitHub Actions secrets.
-- The current UI's login and device-registration calls require the Worker to be deployed on the same origin as the frontend.
-- The gallery now has a file picker, R2 upload action, and authenticated download links. These require a deployed Worker, D1 database, and R2 bucket, then must be tested with non-sensitive files.
-- Device records are per browser installation. A native Android companion app is required for dependable background camera/photo backup, Android WorkManager scheduling, and system-level device management.
-- Automatic backup, file deduplication, malware scanning, quota enforcement, external cloud-provider OAuth, multi-user support, account recovery and production security review are not yet complete.
-- Test with non-sensitive files first. Keep local originals until upload, download and integrity checks have been verified.
+- Deployment and live API tests are not confirmed complete.
+- Login and device-registration calls require the Worker to be deployed on the same origin as the frontend.
+- The gallery's upload/download controls require a deployed Worker, D1 database and R2 bucket, and must be tested.
+- Device records are per browser installation. Native Android background photo backup is not implemented.
+- Automatic backup, deduplication, malware scanning, quota enforcement, external cloud-provider OAuth, multi-user support, account recovery and production security review are not complete.
+- Keep local originals until upload, download and file-integrity checks are verified.
 
 ## Security notes
 
-- Never commit passwords, API keys, OAuth client secrets, access tokens, or private configuration.
-- Do not show a provider, device, or upload as connected/completed unless the backend confirms it.
+- Never commit passwords, API keys, OAuth client secrets or access tokens.
 - Keep the R2 bucket private. Do not expose R2 credentials in browser JavaScript.
-- Before storing important files, add and test checksum verification, backups and account recovery.
+- Test with non-sensitive files first. Add and test checksum verification, backups and account recovery before storing important files.
