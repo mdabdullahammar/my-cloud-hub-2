@@ -118,12 +118,18 @@ async function api(request, env) {
   if (request.method === "GET" && url.pathname === "/api/health") {
     try {
       await env.DB.prepare("SELECT 1 AS ok").first();
+      const requiredTables = ["users", "sessions", "devices", "files", "login_attempts"];
+      const missingTables = [];
+      for (const table of requiredTables) {
+        const found = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").bind(table).first();
+        if (!found) missingTables.push(table);
+      }
       let storage = "not-configured";
       if (env.BUCKET) {
         try { await env.BUCKET.list({ limit: 1 }); storage = "connected"; }
         catch { storage = "unavailable"; }
       }
-      return json({ ok: true, service: "My Private Cloud Hub API", database: "connected", storage });
+      return json({ ok: missingTables.length === 0, service: "My Private Cloud Hub API", database: "connected", schema: missingTables.length ? "incomplete" : "ready", missingTables, storage }, missingTables.length ? 503 : 200);
     } catch {
       return json({ ok: false, service: "My Private Cloud Hub API", database: "unavailable", storage: env.BUCKET ? "bound" : "not-configured" }, 503);
     }
@@ -210,6 +216,12 @@ export default {
       if (url.pathname.startsWith("/api/")) return await api(request, env);
       return env.ASSETS.fetch(request);
     } catch (error) {
+      console.error("My Private Cloud Hub request failed", {
+        path: new URL(request.url).pathname,
+        method: request.method,
+        message: error?.message || String(error),
+        stack: error?.stack || null
+      });
       return json({ error: "Internal server error." }, 500);
     }
   }
