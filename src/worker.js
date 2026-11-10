@@ -118,7 +118,12 @@ async function api(request, env) {
   if (request.method === "GET" && url.pathname === "/api/health") {
     try {
       await env.DB.prepare("SELECT 1 AS ok").first();
-      return json({ ok: true, service: "My Private Cloud Hub API", database: "connected", storage: env.BUCKET ? "bound" : "not-configured" });
+      let storage = "not-configured";
+      if (env.BUCKET) {
+        try { await env.BUCKET.list({ limit: 1 }); storage = "connected"; }
+        catch { storage = "unavailable"; }
+      }
+      return json({ ok: true, service: "My Private Cloud Hub API", database: "connected", storage });
     } catch {
       return json({ ok: false, service: "My Private Cloud Hub API", database: "unavailable", storage: env.BUCKET ? "bound" : "not-configured" }, 503);
     }
