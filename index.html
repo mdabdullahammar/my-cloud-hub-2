@@ -1256,13 +1256,8 @@
             <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 space-y-3">
               <h3 class="font-bold text-sm text-white">External Provider Accounts (not connected)</h3>
               <p class="text-xs text-amber-300">কোনো external Google/OneDrive/Dropbox account সংযুক্ত নেই। OAuth Token Vault এখনো তৈরি হয়নি।</p>
-              <div class="space-y-2 text-xs">
-                ${state.ownerUser.linkedGmails.map((em, i) => `
-                  <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-                    <span class="font-mono text-slate-200">${i + 1}. ${em}</span>
-                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[10px]">AES-256 Vault Record #0${i + 1}</span>
-                  </div>
-                `).join('')}
+              <p class="text-xs text-slate-400">No external provider accounts are connected. OAuth token storage is not implemented.</p>
+               `).join('')}
               </div>
             </div>
 
@@ -1397,18 +1392,11 @@
           <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-3">
             <h2 class="text-xl font-bold">Database Schema (4 tables) &amp; Security Notes</h2>
             <pre class="text-xs font-mono bg-black text-emerald-300 p-4 rounded-2xl overflow-x-auto custom-scroll leading-relaxed">
--- 1. users (Owner profile + Argon2id Master Vault Hash metadata)
--- 2.devices (Independent device_fingerprint UUIDs even when sharing the same Gmail)
--- 3. storage_providers (Official API verification status: R2, Drive, Photos Picker, OneDrive, Dropbox, pCloud)
--- 4. connected_accounts (Supports multiple accounts per provider &amp; 5+ Gmail accounts)
--- 5. oauth_connections (Backend AES-256-GCM Encrypted Token Vault — zero tokens in HTML/localStorage)
--- 6. storage_allocation_rules (Sequential overflow priority_order, usage_threshold_pct, redundancy flag)
--- 7. storage_objects (Tracks exact storage_provider_id + remote_object_key + SHA-256 checksum)
--- 8. media_files (Device-scoped folders: Camera, Screenshots, WhatsApp Images/Videos, Downloads + External Google flag)
--- 9. backup_jobs (5 WorkManager statuses: Pending, Uploading, Completed, Failed, Retry Scheduled + Local Delete Guard)
--- 10. backup_history (Append-only verified transfer ledger)
--- 11. security_audit_logs (Tamper-evident logs for lockouts, device revocations, and signed URL issuance)
-            </pre>
+-- users: owner profile and PBKDF2-SHA-256 password hash
+-- sessions: hashed server-side session tokens and expiry
+-- devices: registered browser/device records and revocation timestamp
+-- files: private R2 object key and file metadata
+-- Not implemented: OAuth connections, provider allocation, backup jobs, checksum ledger, security audit ledger            </pre>
           </div>
         </div>
       `;
