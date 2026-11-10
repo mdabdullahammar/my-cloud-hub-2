@@ -217,6 +217,7 @@
       },
       authMode: 'register',
       authMessage: '',
+      r2Status: 'not checked',
       currentTab: 'devices_hub', // 'devices_hub' | 'network' | 'connections' | 'gallery' | 'activity' | 'companion' | 'security' | 'architecture'
       // Drill-down state inside "devices_hub"
       activeDeviceId: null, // null = show Registered Devices list (Image 1); if set, can view dual-box or drill into 'DEVICE_GALLERY' or 'GOOGLE_LIBRARY'
@@ -233,8 +234,6 @@
       externalGoogleItems: [],
       backupActivity: [],
       // Storage Allocation vs Redundancy Mode
-      simulatedUploadSizeMB: 250,
-      redundancyMirrorEnabled: false,
       // Gallery Filters
       galleryView: 'ALL',
       gallerySearch: '',
@@ -315,6 +314,7 @@
       } catch (error) { state.authMessage = error.message; render(); }
     }
     async function bootstrap() {
+      try { const health = await apiRequest('/api/health'); state.r2Status = health.storage; } catch { state.r2Status = 'unavailable'; }
       try { const result = await apiRequest('/api/auth/me'); state.isAuthenticated = true; state.ownerUser = { id:result.user.id, name:result.user.displayName, email:result.user.email, linkedGmails:[], authProvider:'Cloudflare Worker Session', sessionId:result.user.id }; await refreshCloudData(); }
       catch { render(); }
     }
