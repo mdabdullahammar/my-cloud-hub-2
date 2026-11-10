@@ -407,8 +407,8 @@
           c.subtitle = c.priority === 1 ? 'Primary Storage' : (c.priority === 2 ? 'Secondary Storage' : 'Future / Overflow Storage');
         }
       });
-      addAuditLog('DEMO_RECORD_REMOVED', `Removed the local preview record for ${removed.label}; no real account or token was changed.`);
-      showToast('Preview record removed', `Removed ${removed.label} from this local demo view. No real account was disconnected and no token was revoked.`, 'warn');
+      addAuditLog('UNAVAILABLE_RECORD_REMOVED', `Removed the local preview record for ${removed.label}; no real account or token was changed.`);
+      showToast('Preview record removed', `Removed ${removed.label} from this local account view. No real account was disconnected and no token was revoked.`, 'warn');
       render();
     }
 
@@ -613,7 +613,7 @@
         '<button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 text-black font-bold">' + (state.authMode === 'register' ? 'Create Owner Account' : 'Login Securely') + '</button></form>' +
         (state.authMessage ? '<div role="alert" class="text-rose-300 text-xs">' + state.authMessage + '</div>' : '') +
         '<p class="text-xs text-slate-500">প্রথম অ্যাকাউন্ট তৈরি হলে নতুন public registration বন্ধ থাকবে। Cloudflare Backend চালু না থাকলে Login কাজ করবে না।</p></div></div>' +
-        '<div class="text-center text-xs text-slate-600">No demo accounts, sample files or sample devices.</div></div>';
+        '<div class="text-center text-xs text-slate-600">Private account access only.</div></div>';
     }
     function renderVaultLockScreen() {
       return `
@@ -688,9 +688,7 @@
               <button onclick="openAddDeviceModal()" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold">
                 + Register Device
               </button>
-              <button onclick="setPreviewMode(state.previewDataMode === 'EMPTY' ? 'DEMO' : 'EMPTY')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">
-                ${state.previewDataMode === 'EMPTY' ? 'Load Populated Demo (3+ Devices)' : 'Switch to 0-State Empty Mode'}
-              </button>
+
             </div>
           </div>
 
@@ -712,8 +710,8 @@
                 আপনার অ্যাকাউন্টে এখনো কোনো ডিভাইস নিবন্ধিত হয়নি। বাস্তব নিবন্ধনের জন্য Register Device চাপুন।
               </p>
               <div class="flex justify-center gap-3">
-                <button onclick="openAddDeviceModal()" class="px-4 py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">+ Add First Preview Card</button>
-                <button onclick="setPreviewMode('DEMO')" class="px-4 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-semibold">Load Demo Devices</button>
+                <button onclick="openAddDeviceModal()" class="px-4 py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">+ Register First Device</button>
+
               </div>
             </div>
           ` : `
@@ -1098,7 +1096,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${items.length === 0 ? `
               <div class="md:col-span-2 p-8 rounded-2xl bg-[#0a0b0e] border border-slate-800 text-center text-xs text-slate-400">
-                এই Google Account (${activeEmail})-এ কোনো ডেমো External ফাইল যুক্ত নেই। ড্রপডাউন থেকে <code class="text-blue-400">demo.owner@example.test</code> বা <code class="text-blue-400">demo.second@example.test</code> নির্বাচন করুন।
+                এই অ্যাকাউন্টে কোনো External Google Drive ফাইল পাওয়া যায়নি। Google Drive সংযোগ এখনো কনফিগার করা হয়নি।
               </div>
             ` : items.map(item => `
               <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 flex flex-col justify-between gap-4">
@@ -1158,7 +1156,7 @@
           <div class="space-y-4">
             ${eligible.length === 0 ? `
               <div class="p-8 rounded-3xl bg-[#0a0b0e] border border-slate-800 text-center text-sm text-slate-400">
-                No storage locations connected. Click "Add Storage Provider" or load Demo Preview Mode.
+                No storage provider is connected. Provider integration is not configured.
               </div>
             ` : eligible.map((acc, idx) => {
               const pct = acc.totalGB ? Math.round((acc.usedGB / acc.totalGB) * 100) : 0;
@@ -1182,7 +1180,7 @@
                           ? 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
                           : 'bg-slate-800 text-slate-300'
                       }">
-                        ${state.previewDataMode === 'DEMO' ? 'DEMO ROUTING ONLY' : 'Not connected'}
+                        ${'Not connected'}
                       </span>
                     </div>
                   </div>
@@ -1193,7 +1191,7 @@
                         <div class="h-full bg-emerald-500 rounded-full transition-all" style="width: ${Math.min(100, pct)}%"></div>
                       </div>
                       <div class="flex items-center justify-between text-xs text-slate-300">
-                        <span>DEMO CAPACITY: ${pct}% (${acc.usedGB} GB / ${acc.totalGB} GB) — not live account data</span>
+                        <span>Capacity preview: ${pct}% (${acc.usedGB} GB / ${acc.totalGB} GB) — not live account data</span>
                         <span class="text-slate-400">Capacity status</span>
                       </div>
                     </div>
@@ -1275,7 +1273,7 @@
                     class="w-24 px-2.5 py-1 rounded-lg bg-black border border-slate-700 font-mono text-white text-right" />
                 </div>
                 <div class="text-xs font-semibold text-emerald-400">
-                  DEMO ROUTING ONLY — ${routing.selected ? `${routing.selected.label} (fictional sample target)` : 'No real storage provider connected'}
+                  No storage provider connected — no upload routing is active.
                   ${state.redundancyMirrorEnabled ? ' + Secondary Mirror Copy' : ''}
                 </div>
               </div>
@@ -1351,7 +1349,7 @@
                     <div class="space-y-1">
                       <div class="flex flex-wrap items-center gap-2">
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border ${badgeStyles[job.status] || badgeStyles['Pending']}">
-                          ${state.previewDataMode === 'DEMO' ? 'DEMO • ' + job.status : 'No backup jobs'}
+                          ${'No backup jobs'}
                         </span>
                         <span class="font-bold text-sm text-white">${job.filename}</span>
                         <span class="text-xs text-slate-400">(${job.sizeMB} MB)</span>
@@ -1368,7 +1366,7 @@
                     <div class="flex items-center gap-3 shrink-0">
                       <div class="w-32">
                         <div class="flex justify-between text-xs mb-1">
-                          <span>Demo progress</span>
+                          <span>Progress unavailable</span>
                           <span class="font-mono">${job.progress}%</span>
                         </div>
                         <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
@@ -1520,7 +1518,7 @@
                       <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
                         <div class="flex justify-between font-semibold">
                           <span>${acc.label}</span>
-                          <span class="text-amber-300 font-mono">${state.previewDataMode === 'DEMO' ? 'DEMO SAMPLE — NOT CONNECTED' : 'NOT CONNECTED'}</span>
+                          <span class="text-amber-300 font-mono">${'NOT CONNECTED'}</span>
                         </div>
                         <div class="text-slate-400 font-mono text-[11px]">${acc.accountIdentifier}</div>
                         <div class="flex gap-1.5 pt-1">
@@ -1561,7 +1559,7 @@
                   <span class="font-mono text-slate-400">${m.sizeMB} MB</span>
                 </div>
                 <div class="font-bold text-sm text-white truncate">${m.filename}</div>
-                <div class="text-xs text-emerald-400 font-mono truncate">DEMO SAMPLE • ${m.providerLabel} (not stored in cloud)</div>
+                <div class="text-xs text-emerald-400 font-mono truncate">Not stored in cloud</div>
                 <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
                   <span class="text-slate-500">${m.captureDate.split(' ')[0]}</span>
                   <button onclick="inspectMedia('${m.id}')" class="text-emerald-400 font-semibold hover:underline">Open / Play →</button>
@@ -1687,7 +1685,7 @@
           <main class="flex-1 max-w-6xl w-full mx-auto px-4 lg:px-8 py-6">
             <div role="status" class="mb-5 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs sm:text-sm text-amber-200">
               <strong>Frontend prototype only.</strong> No real sign-in, cloud provider, device, upload, backup, or database is connected.
-              ${state.previewDataMode === 'DEMO' ? '<div class="mt-1 font-bold">DEMO DATA ONLY — all displayed accounts, files, devices, capacities and activity are fictional sample records.</div>' : '<div class="mt-1">Empty workspace — no sample account or file records are loaded.</div>'}
+              ${'<div class="mt-1">Only real records returned by the backend are shown.</div>'}
             </div>
             ${mainContent}
           </main>
