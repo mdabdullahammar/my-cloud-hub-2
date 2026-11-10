@@ -207,13 +207,9 @@
     const state = {
       isAuthenticated: false,
       // Authentication is handled by the Cloudflare Worker session.
-      isVaultUnlocked: true,
-      failedUnlockAttempts: 0,
-      lockoutUntilTimestamp: null,
-      inactivityTimeoutMinutes: 15,
       ownerUser: {
         id: null, name: 'Signed out', email: '',
-        linkedGmails: [], authProvider: 'Authentication not configured', sessionId: null
+        linkedGmails: [], authProvider: 'Not signed in', sessionId: null
       },
       authMode: 'register',
       authMessage: '',
@@ -554,39 +550,6 @@
         '<p class="text-xs text-slate-500">প্রথম অ্যাকাউন্ট তৈরি হলে নতুন public registration বন্ধ থাকবে। Cloudflare Backend চালু না থাকলে Login কাজ করবে না।</p></div></div>' +
         '<div class="text-center text-xs text-slate-600">Private account access only.</div></div>';
     }
-    function renderVaultLockScreen() {
-      return `
-        <div class="min-h-screen flex items-center justify-center bg-[#050507] text-white p-6">
-          <div class="max-w-md w-full bg-[#0c0d10] border border-emerald-500/30 rounded-3xl p-8 shadow-2xl space-y-5 fade-in">
-            <div class="flex items-center justify-between">
-              <span class="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
-                LAYER 1 • MASTER PASSWORD GATE
-              </span>
-              <span class="text-xs text-slate-500 font-mono">Auto-Lock: ${state.inactivityTimeoutMinutes}m</span>
-            </div>
-            <div>
-              <h2 class="text-xl font-bold">Hub Locked — Server Hash Verification</h2>
-              <p class="text-xs text-slate-400 mt-1">
-                Password কখনো Frontend-এ যাচাই করা হয় না। Backend PBKDF2-SHA-256 hash দিয়ে যাচাই করে এবং ১৫ মিনিটে ৮টি ব্যর্থ Login হলে সাময়িক lockout দেয়।
-              </p>
-            </div>
-            <div class="space-y-3">
-              <input id="vault-pass-input" type="password" placeholder="Enter Master Passphrase (try any phrase, or 'wrong' to test lockout)"
-                class="w-full px-4 py-3 rounded-xl bg-black border border-slate-800 text-sm focus:outline-none focus:border-emerald-500" />
-              <button onclick="attemptVaultUnlock(document.getElementById('vault-pass-input').value)"
-                class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm">
-                Verify with Server Hash &amp; Unlock Hub
-              </button>
-            </div>
-            <div class="text-[11px] text-slate-500 flex justify-between">
-              <span>Failed Attempts: ${state.failedUnlockAttempts} / 3</span>
-              <button onclick="handleLogout()" class="text-rose-400 hover:underline">Sign out</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
     // ==========================================
     // SCREEN 1 & 2: REGISTERED DEVICES HUB + DUAL SIDE-BY-SIDE BOXES
     // ==========================================
@@ -1409,11 +1372,6 @@
 
       if (!state.isAuthenticated) {
         app.innerHTML = renderWelcomeScreen();
-        return;
-      }
-
-      if (!state.isVaultUnlocked) {
-        app.innerHTML = renderVaultLockScreen();
         return;
       }
 
