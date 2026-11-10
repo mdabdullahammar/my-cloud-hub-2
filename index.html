@@ -1539,27 +1539,40 @@
       `;
     }
 
+    async function uploadSelectedFile() {
+      const input = document.getElementById('upload-file-input');
+      const file = input && input.files ? input.files[0] : null;
+      if (!file) { showToast('Choose a file', 'Select a file before uploading.', 'warn'); return; }
+      if (file.size > 100 * 1024 * 1024) { showToast('File too large', 'The current upload API limit is 100 MB.', 'warn'); return; }
+      try {
+        const response = await fetch('/api/files/upload', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name) }, body: file });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Upload failed');
+        input.value = ''; await refreshCloudData();
+        showToast('Upload complete', 'The file was stored in the private R2 bucket.', 'success');
+      } catch (error) { showToast('Upload failed', error.message, 'warn'); }
+    }
     function renderUnifiedGalleryTab() {
       return `
         <div class="space-y-6 fade-in">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-xl font-bold">Gallery Preview (sample records only)</h2>
+              <h2 class="text-xl font-bold">Private Cloud Files</h2>
               <p class="text-xs text-slate-400">
-                পুরোনো ফাইল কোন Storage-এ আছে সেটি না হারিয়ে সবগুলোকে এক জায়গায় দেখুন (অথবা নির্দিষ্ট ফোনের গ্যালারি দেখতে "Registered Devices" ট্যাবে যান)।
+                Cloudflare R2-তে সংরক্ষিত ফাইলগুলো এখানে দেখা যাবে। বর্তমান আপলোড সীমা 100 MB।
               </p>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div class="flex flex-wrap items-center gap-2"><input id="upload-file-input" type="file" class="max-w-full text-xs text-slate-300" /><button onclick="uploadSelectedFile()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">Upload to R2</button></div>\n          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             ${state.mediaFiles.map(m => `
               <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800 space-y-3">
                 <div class="flex items-center justify-between text-xs">
-                  <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-mono">${m.deviceName} • 📁 ${m.folderCategory}</span>
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-mono">Cloudflare R2</span>
                   <span class="font-mono text-slate-400">${m.sizeMB} MB</span>
                 </div>
                 <div class="font-bold text-sm text-white truncate">${m.filename}</div>
-                <div class="text-xs text-emerald-400 font-mono truncate">Not stored in cloud</div>
+                <div class="text-xs text-emerald-400 font-mono truncate">Stored in private cloud metadata</div>
                 <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
                   <span class="text-slate-500">${m.captureDate.split(' ')[0]}</span>
                   <button onclick="inspectMedia('${m.id}')" class="text-emerald-400 font-semibold hover:underline">Open / Play →</button>
