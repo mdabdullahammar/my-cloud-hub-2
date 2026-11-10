@@ -236,7 +236,7 @@
           providerId: 'onedrive',
           label: 'Storage Provider 02 (OneDrive M365)',
           subtitle: 'Secondary Storage',
-          accountIdentifier: 'ammar@example.com',
+          accountIdentifier: 'demo.owner@example.test',
           status: 'HEALTHY',
           statusBadge: 'Active',
           usedGB: 204.8,
@@ -254,7 +254,7 @@
           providerId: 'dropbox',
           label: 'Storage Provider 03 (Dropbox Vault)',
           subtitle: 'Future / Overflow Storage',
-          accountIdentifier: 'ammar.vault@example.com',
+          accountIdentifier: 'demo.vault@example.test',
           status: 'HEALTHY',
           statusBadge: 'Standby',
           usedGB: 0.0,
@@ -270,9 +270,9 @@
         {
           id: 'conn_gdrive_1',
           providerId: 'google_drive',
-          label: 'Google Drive — Account 1 (ammar@example.com)',
+          label: 'Google Drive — Account 1 (demo.owner@example.test)',
           subtitle: 'External Cloud / Narrow Drive Scope',
-          accountIdentifier: 'ammar@example.com',
+          accountIdentifier: 'demo.owner@example.test',
           status: 'HEALTHY',
           statusBadge: 'External Ready',
           usedGB: 11.2,
@@ -288,9 +288,9 @@
         {
           id: 'conn_gphotos_1',
           providerId: 'google_photos',
-          label: 'Google Photos — Picker Session (ammar@example.com)',
+          label: 'Google Photos — Picker Session (demo.owner@example.test)',
           subtitle: 'External Cloud Library',
-          accountIdentifier: 'ammar@example.com',
+          accountIdentifier: 'demo.owner@example.test',
           status: 'PICKER_READY',
           statusBadge: 'Picker Active',
           usedGB: null,
@@ -313,7 +313,7 @@
           platformLabel: 'Android',
           onlineStatus: 'Online',
           osVersion: 'Android 15 • Companion WorkManager v1.2',
-          googleEmail: 'ammar@example.com',
+          googleEmail: 'demo.owner@example.test',
           deviceFingerprint: 'andr-01-s24u-9948a',
           lastActive: 'Just now',
           backedUpFiles: 1250,
@@ -331,7 +331,7 @@
           platformLabel: 'Android',
           onlineStatus: 'Offline',
           osVersion: 'Android 14 • Companion WorkManager v1.2',
-          googleEmail: 'second@example.com',
+          googleEmail: 'demo.second@example.test',
           deviceFingerprint: 'andr-02-px8p-3310b',
           lastActive: '3 hours ago',
           backedUpFiles: 680,
@@ -349,7 +349,7 @@
           platformLabel: 'Desktop',
           onlineStatus: 'Online',
           osVersion: 'Windows 11 Pro 24H2 • Desktop Agent',
-          googleEmail: 'ammar@example.com',
+          googleEmail: 'demo.owner@example.test',
           deviceFingerprint: 'win11-03-ws01-88b4c',
           lastActive: '4 mins ago',
           backedUpFiles: 320,
@@ -367,7 +367,7 @@
           platformLabel: 'iOS',
           onlineStatus: 'Online',
           osVersion: 'iOS 19 • Companion Sync',
-          googleEmail: 'ammar@example.com',
+          googleEmail: 'demo.owner@example.test',
           deviceFingerprint: 'ios-04-ip16p-7721d',
           lastActive: '19 mins ago',
           backedUpFiles: 410,
@@ -385,7 +385,7 @@
           platformLabel: 'Laptop',
           onlineStatus: 'Offline',
           osVersion: 'macOS Sequoia • Desktop Agent',
-          googleEmail: 'third.account@example.com',
+          googleEmail: 'demo.third@example.test',
           deviceFingerprint: 'mac-05-mbp16-5501e',
           lastActive: 'Yesterday',
           backedUpFiles: 195,
@@ -539,7 +539,7 @@
           isExternal: false,
           gradient: 'from-purple-500/30 via-indigo-700/20 to-slate-900'
         },
-        // Windows Computer (dev_03_windows) — Shares ammar@example.com with Samsung Galaxy but kept 100% separate!
+        // Windows Computer (dev_03_windows) — Shares demo.owner@example.test with Samsung Galaxy but kept 100% separate!
         {
           id: 'med_08',
           filename: 'StudioMaster_Render_8K_Final.TIFF',
@@ -565,7 +565,7 @@
       externalGoogleItems: [
         {
           id: 'gext_01',
-          googleEmail: 'ammar@example.com',
+          googleEmail: 'demo.owner@example.test',
           filename: 'CoxsBazar_Tour_2026_Original.HEIC',
           format: 'HEIC',
           type: 'PHOTO',
@@ -574,11 +574,11 @@
           captureDate: '2026-10-28',
           sources: ['Google Photos (Picker API)', 'Google Drive (/My Drive/Photos/2026)'],
           dualSource: true,
-          note: 'Present in both Google Drive & Google Photos under ammar@example.com — Displayed as unified 2-source reference without re-uploading to R2.'
+          note: 'Present in both Google Drive & Google Photos under demo.owner@example.test — Displayed as unified 2-source reference without re-uploading to R2.'
         },
         {
           id: 'gext_02',
-          googleEmail: 'ammar@example.com',
+          googleEmail: 'demo.owner@example.test',
           filename: 'Passport_And_NationalID_Scan.PDF.JPG',
           format: 'JPEG',
           type: 'PHOTO',
@@ -591,7 +591,7 @@
         },
         {
           id: 'gext_03',
-          googleEmail: 'ammar@example.com',
+          googleEmail: 'demo.owner@example.test',
           filename: 'Family_Eid_Gathering_4K.MP4',
           format: 'MP4',
           type: 'VIDEO',
@@ -604,7 +604,7 @@
         },
         {
           id: 'gext_04',
-          googleEmail: 'second@example.com',
+          googleEmail: 'demo.second@example.test',
           filename: 'Field_Research_Notes_Scan.PNG',
           format: 'PNG',
           type: 'PHOTO',
@@ -613,7 +613,7 @@
           captureDate: '2026-11-02',
           sources: ['Google Drive (/My Drive/FieldWork)', 'Google Photos (Picker API)'],
           dualSource: true,
-          note: 'Account-scoped to second@example.com across both Drive & Photos.'
+          note: 'Account-scoped to demo.second@example.test across both Drive & Photos.'
         }
       ],
       backupActivity: [
@@ -704,7 +704,7 @@
       activeDeviceSubView: 'DUAL_BOX', // 'DUAL_BOX' (Image 2) | 'DEVICE_GALLERY' | 'GOOGLE_LIBRARY'
       activeDeviceFolder: 'All Photos',
       deviceGallerySortOrder: 'DESC', // 'DESC' | 'ASC'
-      selectedGoogleAccountForLibrary: 'ammar@example.com',
+      selectedGoogleAccountForLibrary: 'demo.owner@example.test',
       // Global settings & modes
       settingsSubTab: 'security_layers',
       darkMode: true,
@@ -862,10 +862,6 @@
     // ==========================================
     function openConnectModal() {
       showToast('Integration not implemented', 'Provider authorization is not configured. No account has been connected and no credentials have been saved.', 'warn');
-    }
-
-    function confirmConnectProvider() {
-      showToast('Integration not implemented', 'No OAuth/API connection is configured. No account was connected and no token was saved.', 'warn');
     }
 
     function closeModal() {
@@ -1232,7 +1228,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
             </div>
             <div class="text-[11px] text-slate-500 flex justify-between">
               <span>Failed Attempts: ${state.failedUnlockAttempts} / 3</span>
-              <button onclick="handleLogout()" class="text-rose-400 hover:underline">Sign Out Completely</button>
+              <button onclick="handleLogout()" class="text-rose-400 hover:underline">Close Preview Completely</button>
             </div>
           </div>
         </div>
@@ -1272,7 +1268,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
                 </span>
               </div>
               <p class="text-xs text-slate-400">
-                একই Gmail (<code class="text-emerald-300">ammar@example.com</code>) দিয়ে Samsung Galaxy, Windows Computer ও iPhone যুক্ত থাকলেও প্রতিটি ডিভাইসের আলাদা Card এবং আলাদা ছবির হিসাব রাখা হয়েছে।
+                একই Gmail (<code class="text-emerald-300">demo.owner@example.test</code>) দিয়ে Samsung Galaxy, Windows Computer ও iPhone যুক্ত থাকলেও প্রতিটি ডিভাইসের আলাদা Card এবং আলাদা ছবির হিসাব রাখা হয়েছে।
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2 shrink-0">
@@ -1689,7 +1685,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${items.length === 0 ? `
               <div class="md:col-span-2 p-8 rounded-2xl bg-[#0a0b0e] border border-slate-800 text-center text-xs text-slate-400">
-                এই Google Account (${activeEmail})-এ কোনো ডেমো External ফাইল যুক্ত নেই। ড্রপডাউন থেকে <code class="text-blue-400">ammar@example.com</code> বা <code class="text-blue-400">second@example.com</code> নির্বাচন করুন।
+                এই Google Account (${activeEmail})-এ কোনো ডেমো External ফাইল যুক্ত নেই। ড্রপডাউন থেকে <code class="text-blue-400">demo.owner@example.test</code> বা <code class="text-blue-400">demo.second@example.test</code> নির্বাচন করুন।
               </div>
             ` : items.map(item => `
               <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 flex flex-col justify-between gap-4">
@@ -1992,11 +1988,14 @@ FRONTEND PREVIEW • NO LIVE STORAGE
               <h2 class="text-xl font-bold">Planned Security Architecture</h2>
               <p class="text-xs text-amber-300">এটি ভবিষ্যৎ নিরাপত্তা পরিকল্পনা — কোনো Security Layer, Password Gate, Token Vault বা Device Revocation এখনো বাস্তবে চালু নয়।</p>
             </div>
-            <button onclick="lockVaultNow()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">
+            <button disabled aria-disabled="true" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 text-xs font-bold cursor-not-allowed">
               Security test unavailable (not implemented)
             </button>
           </div>
 
+          <div class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-200">
+            The following six layers are proposed security controls only. None of them is currently implemented, enabled, or protecting real files.
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
             <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
               <div class="text-emerald-400 font-mono font-bold">LAYER 1 • MASTER PASSWORD</div>
@@ -2250,7 +2249,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
                   ⚙️
                 </button>
                 <button onclick="handleLogout()" class="px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold">
-                  Sign Out
+                  Close Preview
                 </button>
               </div>
             </div>
