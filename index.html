@@ -567,7 +567,7 @@
             <div>
               <h2 class="text-xl font-bold">Hub Locked — Server Hash Verification</h2>
               <p class="text-xs text-slate-400 mt-1">
-                Password কখনো Source Code বা Frontend-এ মেলানো হয় না। Backend Argon2id Hash দ্বারা যাচাই করা হয় এবং ১৫ মিনিটের মধ্যে ৮ বার ভুল হলে সাময়িক Lockout হয়।
+                Password কখনো Frontend-এ যাচাই করা হয় না। Backend PBKDF2-SHA-256 hash দিয়ে যাচাই করে এবং ১৫ মিনিটে ৮টি ব্যর্থ Login হলে সাময়িক lockout দেয়।
               </p>
             </div>
             <div class="space-y-3">
@@ -1101,7 +1101,7 @@
               <p class="text-xs text-amber-300">Native Android Companion App ও WorkManager এখনো তৈরি হয়নি। তাই background camera backup চালু নেই।</p>
             </div>
             <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-mono">
-              Local Original Delete Guard: STRICTLY LOCKED UNTIL CLOUD VERIFIED
+              Automatic Backup: Not Active
             </span>
           </div>
 
@@ -1135,7 +1135,7 @@
               <div>
                 <h3 class="text-base font-bold text-white">Automatic Backup Status</h3>
                 <p class="text-xs text-slate-400">
-                  Android-এর ব্যাটারি ও Background Execution নীতির কারণে প্রতিটি নতুন ছবি সঙ্গে সঙ্গে Upload নাও হতে পারে; WorkManager শর্ত পূরণ সাপেক্ষে নির্ভরযোগ্যভাবে Queue সম্পন্ন করে।
+                  Native Android Companion App না থাকায় Background WorkManager upload এখনো চালু নয়।
                 </p>
               </div>
               <span class="text-xs font-mono text-amber-400">Cloud Verify হওয়ার আগে Local ছবি কখনো মুছবে না</span>
@@ -1240,7 +1240,7 @@
 
             <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
               <div class="text-emerald-400 font-mono font-bold">LAYER 5 • ENCRYPTED TRANSFER</div>
-              <div class="font-bold text-sm text-white">TLS 1.3 HTTPS + SHA-256 Verification</div>
+              <div class="font-bold text-sm text-white">HTTPS Transport (Checksum Pending)</div>
               <p class="text-slate-400">Worker HTTPS ব্যবহার করে; SHA-256 Checksum verification এখনো implement করা হয়নি।</p>
             </div>
 
@@ -1267,7 +1267,7 @@
             </div>
 
             <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 space-y-3">
-              <h3 class="font-bold text-sm text-white">Local preview activity (not a security audit log)</h3>
+              <h3 class="font-bold text-sm text-white">Local session activity (not a security audit log)</h3>
               <div class="space-y-2 max-h-60 overflow-y-auto custom-scroll pr-1">
                 ${state.auditLogs.map(log => `
                   <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
@@ -1328,8 +1328,8 @@
                         </div>
                         <div class="text-slate-400 font-mono text-[11px]">${acc.accountIdentifier}</div>
                         <div class="flex gap-1.5 pt-1">
-                          <span class="text-amber-300 text-[11px]">Fictional sample record — not connected</span>
-                          <button onclick="disconnectAccount('${acc.id}')" class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-[11px]">Remove sample</button>
+                          <span class="text-amber-300 text-[11px]">No provider record is connected</span>
+                          <button onclick="disconnectAccount('${acc.id}')" class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-[11px]">Remove record</button>
                         </div>
                       </div>
                     `).join('')}
