@@ -33,4 +33,4 @@ jobs:
         run: wrangler d1 migrations apply my-private-cloud-hub-db --remote
 
       - name: Deploy Worker and static frontend
-        run: wrangler deploy --yes
+        run: wrangler deploy 
