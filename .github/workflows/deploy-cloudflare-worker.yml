@@ -30,7 +30,7 @@ jobs:
         run: mkdir -p public && cp index.html public/index.html
 
       - name: Apply D1 migrations
-        run: wrangler d1 migrations apply my-private-cloud-hub --remote
+        run: wrangler d1 migrations apply my-private-cloud-hub-db --remote
 
       - name: Deploy Worker and static frontend
         run: wrangler deploy --yes
