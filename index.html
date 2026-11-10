@@ -1075,156 +1075,23 @@
     // SCREEN 3: MY STORAGE NETWORK (MATCHING IMAGE 3 + ALLOCATION MANAGER)
     // ==========================================
     function renderStorageNetworkTab() {
-      const eligible = state.connectedAccounts.filter(c => c.priority !== null).sort((a, b) => a.priority - b.priority);
-      const routing = computeRoutingDecision(state.simulatedUploadSizeMB);
-
       return `
         <div class="space-y-6 fade-in">
-          <!-- Exact Visual Header from Image 3 -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 class="text-xl sm:text-2xl font-bold text-white">My Storage Network</h2>
-              <p class="text-xs sm:text-sm text-slate-400">ব্যক্তিগত Backup-এর জন্য যুক্ত Storage Locations (Multi-Provider Storage Allocation Manager)</p>
+          <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+            <h2 class="text-xl font-bold">Storage Connections</h2>
+            <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800">
+              <div><div class="font-semibold">Cloudflare R2 — Private Object Storage</div><p class="text-xs text-slate-400">Primary file bucket used by the Worker API.</p></div>
+              <span class="text-xs font-bold ${state.r2Status === 'connected' ? 'text-emerald-400' : 'text-amber-300'}">${state.r2Status || 'Not verified'}</span>
             </div>
-            <button onclick="switchTab('connections')" class="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold">
-              ⊕ Add Storage Provider
-            </button>
+            <p class="text-xs text-slate-400">R2 status is read from the deployed backend health endpoint. No storage capacity or provider account is shown unless the API reports real data.</p>
           </div>
-
-          <!-- IMAGE 3 STYLE STORAGE CARDS (Primary Active 65%, Secondary Active 20%, Standby Overflow) -->
-          <div class="space-y-4">
-            ${eligible.length === 0 ? `
-              <div class="p-8 rounded-3xl bg-[#0a0b0e] border border-slate-800 text-center text-sm text-slate-400">
-                No storage provider is connected. Provider integration is not configured.
-              </div>
-            ` : eligible.map((acc, idx) => {
-              const pct = acc.totalGB ? Math.round((acc.usedGB / acc.totalGB) * 100) : 0;
-              const isStandby = acc.priority > 2 || !acc.enabledForUploads || pct === 0;
-              return `
-                <div class="p-5 sm:p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800/90 space-y-3 shadow-lg">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                      <div class="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-slate-200">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                      </div>
-                      <div>
-                        <h3 class="font-bold text-base sm:text-lg text-white">${acc.label}</h3>
-                        <div class="text-xs text-slate-400">${acc.subtitle || (acc.priority === 1 ? 'Primary Storage' : acc.priority === 2 ? 'Secondary Storage' : 'Future / Overflow Storage')}</div>
-                      </div>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                      <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                        !isStandby
-                          ? 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
-                          : 'bg-slate-800 text-slate-300'
-                      }">
-                        ${'Not connected'}
-                      </span>
-                    </div>
-                  </div>
-
-                  ${!isStandby ? `
-                    <div class="space-y-2 pt-1">
-                      <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
-                        <div class="h-full bg-emerald-500 rounded-full transition-all" style="width: ${Math.min(100, pct)}%"></div>
-                      </div>
-                      <div class="flex items-center justify-between text-xs text-slate-300">
-                        <span>Capacity preview: ${pct}% (${acc.usedGB} GB / ${acc.totalGB} GB) — not live account data</span>
-                        <span class="text-slate-400">Capacity status</span>
-                      </div>
-                    </div>
-                  ` : `
-                    <div class="text-xs text-slate-400 pt-1">
-                      Not currently receiving backups (Automatically activates when Priority ${acc.priority - 1} reaches its ${acc.thresholdPct}% limit)
-                    </div>
-                  `}
-
-                  <!-- Priority & Threshold Controls -->
-                  <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/70 text-xs">
-                    <div class="flex items-center gap-2">
-                      <span class="text-slate-400">Switch Threshold %:</span>
-                      <input type="number" min="50" max="99" value="${acc.thresholdPct}"
-                        onchange="updateThreshold('${acc.id}', this.value)"
-                        class="w-16 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 font-mono text-center text-white" />
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button onclick="toggleProviderUploadEligible('${acc.id}')" class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300">
-                        ${acc.enabledForUploads ? 'Set Standby' : 'Set Active'}
-                      </button>
-                      <button onclick="movePriority('${acc.id}', -1)" ${idx === 0 ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 disabled:opacity-30">↑</button>
-                      <button onclick="movePriority('${acc.id}', 1)" ${idx === eligible.length - 1 ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 disabled:opacity-30">↓</button>
-                    </div>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-
-            <!-- Add Storage Provider Card (Bottom of Image 3) -->
-            <div onclick="switchTab('connections')" class="cursor-pointer p-5 rounded-3xl bg-[#0a0b0e] border border-dashed border-slate-800 hover:border-emerald-500/50 flex items-center gap-3 transition">
-              <div class="w-9 h-9 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-emerald-400 font-bold">
-                +
-              </div>
-              <div>
-                <div class="font-bold text-sm text-white">Add Storage Provider</div>
-                <div class="text-xs text-slate-400">নতুন Storage যুক্ত করার ব্যবস্থা (শুধু বৈধ ও অনুমোদিত Upload API যুক্ত Provider)</div>
-              </div>
-            </div>
+          <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+            <h3 class="font-bold">External Cloud Providers</h3>
+            <p class="text-sm text-slate-400">Google Drive, Google Photos, OneDrive, Dropbox, pCloud, MEGA, TeraBox and other external services are not connected. Their OAuth/API integrations must be implemented and authorized separately.</p>
+            <button onclick="switchTab('connections')" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-semibold">View provider integration status</button>
           </div>
-
-          <!-- Storage Allocation vs Redundancy Feature Box + 6 Manager Responsibilities -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-3">
-              <span class="text-xs font-mono uppercase text-emerald-400">Storage Allocation Manager (6 Core Responsibilities)</span>
-              <h3 class="text-base font-bold">স্বয়ংক্রিয় Storage নির্বাচন ও ফাইল ট্র্যাকিং</h3>
-              <ol class="text-xs text-slate-300 space-y-2 list-decimal list-inside">
-                <li><strong>ফাঁকা জায়গা পরীক্ষা:</strong> কোন Storage-এ কতটুকু জায়গা খালি আছে তা API দিয়ে পরীক্ষা করে।</li>
-                <li><strong>উপযুক্ত Storage নির্বাচন:</strong> নতুন Backup-এর জন্য Priority অনুযায়ী সক্রিয় Storage নির্বাচন করে।</li>
-                <li><strong>স্বয়ংক্রিয় Overflow:</strong> নির্ধারিত সীমা (যেমন ৮৫%) পূর্ণ হলে পরবর্তী Storage নির্বাচন করে।</li>
-                <li><strong>Database-এ Location সংরক্ষণ:</strong> প্রতিটি ফাইলের <code class="text-emerald-400">storage_provider_id</code> ও <code class="text-emerald-400">remote_object_key</code> স্থায়ীভাবে সংরক্ষণ করে।</li>
-                <li><strong>সফল না হওয়া পর্যন্ত অসমাপ্ত:</strong> Backup ব্যর্থ হলে Retry করে এবং SHA-256 যাচাই না হওয়া পর্যন্ত Completed দেখায় না।</li>
-                <li><strong>Unified Gallery:</strong> পুরোনো ফাইল যে Storage-এই থাকুক, সবগুলোকে একই Gallery-তে নির্ভুলভাবে দেখায়।</li>
-              </ol>
-            </div>
-
-            <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-xs font-mono uppercase text-blue-400">Two Distinct Features</span>
-                  <h3 class="text-base font-bold">Storage Allocation বনাম Redundancy</h3>
-                </div>
-                <button onclick="state.redundancyMirrorEnabled = !state.redundancyMirrorEnabled; render();"
-                  class="px-3 py-1.5 rounded-xl text-xs font-semibold ${state.redundancyMirrorEnabled ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-700 text-slate-300'}">
-                  Redundancy Mirror: ${state.redundancyMirrorEnabled ? 'ON (2 Copies)' : 'OFF (Sequential Only)'}
-                </button>
-              </div>
-              <p class="text-xs text-slate-400 leading-relaxed">
-                <strong>১. Storage Allocation (Sequential Overflow):</strong> একটি Storage পূর্ণ হলে পরবর্তী নতুন ফাইলগুলো পরবর্তী Storage-এ যাবে (মোট জায়গা বৃদ্ধি করে)।<br/>
-                <strong>২. Multi-Copy Redundancy (আলাদা ফিচার):</strong> অত্যন্ত গুরুত্বপূর্ণ ফাইলের ক্ষেত্রে একই ফাইলের ২টি কপি দুটি ভিন্ন Provider-এ সংরক্ষণ করা।
-              </p>
-
-              <!-- Live Routing Simulator -->
-              <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-400">Test New File Upload Routing (MB):</span>
-                  <input type="number" value="${state.simulatedUploadSizeMB}"
-                    oninput="state.simulatedUploadSizeMB = parseFloat(this.value) || 100; render();"
-                    class="w-24 px-2.5 py-1 rounded-lg bg-black border border-slate-700 font-mono text-white text-right" />
-                </div>
-                <div class="text-xs font-semibold text-emerald-400">
-                  No storage provider connected — no upload routing is active.
-                  ${state.redundancyMirrorEnabled ? ' + Secondary Mirror Copy' : ''}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
+        </div>`;
     }
-
-    // ==========================================
-    // SCREEN 4: ANDROID COMPANION APP & WORKMANAGER SIMULATOR
-    // ==========================================
     function renderCompanionTab() {
       return `
         <div class="space-y-6 fade-in">
