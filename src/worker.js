@@ -51,7 +51,7 @@ function requireOrigin(request, env) {
   const origin = request.headers.get("Origin");
   if (!origin) return true;
   const allowed = (env.ALLOWED_ORIGINS || "").split(",").map(x => x.trim()).filter(Boolean);
-  return allowed.includes(origin);
+  return origin === new URL(request.url).origin || allowed.includes(origin);
 }
 async function requireAuth(request, env) {
   const user = await currentUser(request, env);
