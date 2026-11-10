@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Private Cloud Hub — Personal Cloud Orchestrator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans Bengali', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', 'Noto Sans Bengali', sans-serif; overflow-x: hidden; }
+    #app, main, header { min-width: 0; }
+    button, input, select, textarea { max-width: 100%; }
+    @media (max-width: 640px) {
+      body { font-size: 14px; }
+      #toast-container { left: 1rem; right: 1rem; width: auto; max-width: none; }
+      pre { max-width: 100%; }
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 9999px; }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#050507] dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <div id="app"></div>
+  <div id="modal-container"></div>
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <script>
+    // ==========================================
+    // DEVICE ICON AUTO-CHANGER (5 REQUIRED TYPES)
+    // ==========================================
+    function getDeviceTypeIconSvg(deviceType, colorClass = "text-emerald-400") {
+      const t = (deviceType || '').toLowerCase();
+      if (t.includes('iphone')) {
+        // iPhone Icon (Dynamic Island / Notch style)
+        return `<svg class="w-6 h-6 ${colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4"/><circle cx="12" cy="18.5" r="0.8"/></svg>`;
+      }
+      if (t.includes('windows') || t.includes('desktop') || t.includes('pc')) {
+        // Monitor Icon
+        return `<svg class="w-6 h-6 ${colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>`;
+      }
+      if (t.includes('laptop')) {
+        // Laptop Icon
+        return `<svg class="w-6 h-6 ${colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg>`;
+      }
+      if (t.includes('tablet') || t.includes('ipad')) {
+        // Tablet Icon
+        return `<svg class="w-6 h-6 ${colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
+      }
+      // Default: Android Phone -> Smartphone Icon
+      return `<svg class="w-6 h-6 ${colorClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>`;
+    }
+
+    // ==========================================
+    // APPLICATION STATE & STRICT ARCHITECTURE
+    // ==========================================
+    const PROVIDERS_CATALOG = [
+      {
+        id: 'cloudflare_r2',
+        name: 'Cloudflare R2',
+        category: 'Primary Object Storage',
+        apiStatus: 'VERIFIED_S3_API',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: true,
+        quotaApiSupported: true,
+        authMethod: 'S3 API Token + Private Bucket Endpoint (Server-Side Encrypted)',
+        description: 'Zero-egress S3-compatible object storage. Primary Personal Storage Server for original uncompressed media.',
+        color: '#F38020',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#F38020" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`
+      },
+      {
+        id: 'google_drive',
+        name: 'Google Drive',
+        category: 'Cloud Drive API',
+        apiStatus: 'VERIFIED_OAUTH',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: true,
+        quotaApiSupported: true,
+        authMethod: 'Separate OAuth 2.0 (drive.file narrow scope preferred)',
+        description: 'Authorized file & folder browsing, explicit file uploads, and narrow-scope workspace storage.',
+        color: '#3B82F6',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>`
+      },
+      {
+        id: 'google_photos',
+        name: 'Google Photos',
+        category: 'Media Selection API',
+        apiStatus: 'PICKER_ONLY',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: false,
+        quotaApiSupported: false,
+        authMethod: 'Google Photos Picker Session API (No deprecated readonly scope)',
+        description: 'User-initiated photo/video selection via official Picker API. Kept as External Cloud Library without copying into R2.',
+        color: '#EC4899',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`
+      },
+      {
+        id: 'onedrive',
+        name: 'Microsoft OneDrive',
+        category: 'Cloud Drive API',
+        apiStatus: 'VERIFIED_OAUTH',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: true,
+        quotaApiSupported: true,
+        authMethod: 'OAuth 2.0 via Microsoft Identity Platform (Files.ReadWrite)',
+        description: 'Personal & Microsoft 365 storage integration with chunked upload sessions and quota reporting.',
+        color: '#0EA5E9',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`
+      },
+      {
+        id: 'dropbox',
+        name: 'Dropbox',
+        category: 'Cloud Drive API',
+        apiStatus: 'VERIFIED_OAUTH',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: true,
+        quotaApiSupported: true,
+        authMethod: 'OAuth 2.0 PKCE + Offline Refresh Token (Server-Side)',
+        description: 'Supports block-level upload sessions, SHA256 content hashing, and folder navigation.',
+        color: '#2563EB',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`
+      },
+      {
+        id: 'pcloud',
+        name: 'pCloud',
+        category: 'Cloud Drive API',
+        apiStatus: 'VERIFIED_OAUTH',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: true,
+        quotaApiSupported: true,
+        authMethod: 'OAuth 2.0 (US / EU Data Region Endpoint)',
+        description: 'Supports direct file upload, checksum verification, and account quota inspection.',
+        color: '#14B8A6',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`
+      },
+      {
+        id: 'mega',
+        name: 'MEGA',
+        category: 'E2EE Storage',
+        apiStatus: 'LIMITED_SDK',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: false,
+        quotaApiSupported: false,
+        authMethod: 'Pending Official Server-Side SDK Bridge Verification',
+        description: 'Client-side user-controlled encryption requires Mega SDK cryptographic key derivation. Automatic routing disabled until verified.',
+        color: '#EF4444',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 15V9l4 4 4-4v6"/></svg>`
+      },
+      {
+        id: 'terabox',
+        name: 'TeraBox',
+        category: 'Consumer Cloud',
+        apiStatus: 'UNVERIFIED_API',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: false,
+        quotaApiSupported: false,
+        authMethod: 'Unavailable — Partner OAuth Approval Required',
+        description: 'Marked unavailable for automated uploads until official public developer API capabilities and terms are verified.',
+        color: '#6366F1',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 4v4M14 4v4M2 12h20"/></svg>`
+      },
+      {
+        id: 'tresorit',
+        name: 'Tresorit',
+        category: 'Zero-Knowledge E2EE',
+        apiStatus: 'UNVERIFIED_API',
+        apiBadge: 'Integration not implemented',
+        autoUploadCapable: false,
+        quotaApiSupported: false,
+        authMethod: 'Unavailable — Zero-Knowledge Key Broker Pending',
+        description: 'End-to-end encrypted storage. Automatic server-side routing disabled until official API key flow is verified.',
+        color: '#10B981',
+        iconSvg: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+      }
+    ];
+
+    
+    const DEVICE_FOLDER_CATEGORIES = [
+      'All Photos',
+      'Camera',
+      'Screenshots',
+      'Downloads',
+      'Pictures',
+      'WhatsApp Images',
+      'WhatsApp Videos',
+      'Other Folders'
+    ];
+
+    const state = {
+      isAuthenticated: false,
+      // Authentication is handled by the Cloudflare Worker session.
+      ownerUser: {
+        id: null, name: 'Signed out', email: '',
+        linkedGmails: [], authProvider: 'Not signed in', sessionId: null
+      },
+      authMode: 'register',
+      authMessage: '',
+      r2Status: 'not checked',
+      currentTab: 'devices_hub', // 'devices_hub' | 'network' | 'connections' | 'gallery' | 'activity' | 'companion' | 'security' | 'architecture'
+      // Drill-down state inside "devices_hub"
+      activeDeviceId: null, // null = show Registered Devices list (Image 1); if set, can view dual-box or drill into 'DEVICE_GALLERY' or 'GOOGLE_LIBRARY'
+      activeDeviceSubView: 'DUAL_BOX', // 'DUAL_BOX' (Image 2) | 'DEVICE_GALLERY' | 'GOOGLE_LIBRARY'
+      activeDeviceFolder: 'All Photos',
+      deviceGallerySortOrder: 'DESC', // 'DESC' | 'ASC'
+      selectedGoogleAccountForLibrary: '',
+      // Global settings & modes
+      settingsSubTab: 'security_layers',
+      darkMode: true,
+      connectedAccounts: [],
+      devices: [],
+      mediaFiles: [],
+      externalGoogleItems: [],
+      backupActivity: [],
+      // Storage Allocation vs Redundancy Mode
+      // Gallery Filters
+      galleryView: 'ALL',
+      gallerySearch: '',
+      galleryDeviceFilter: 'ALL',
+      galleryProviderFilter: 'ALL',
+      selectedMediaIds: [],
+      googleDriveScopeMode: 'drive.file',
+      auditLogs: []
+    };
+
+    // ==========================================
+    // HELPER FUNCTIONS
+    // ==========================================
+    function showToast(title, message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const colors = {
+        info: 'border-emerald-500/40 bg-slate-900/95 text-slate-100',
+        success: 'border-emerald-500/60 bg-slate-900/95 text-emerald-100',
+        warn: 'border-amber-500/50 bg-slate-900/95 text-amber-100'
+      };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto border ${colors[type] || colors.info} px-4 py-3 rounded-xl shadow-xl backdrop-blur-md fade-in flex items-start justify-between gap-3`;
+      el.innerHTML = `
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider opacity-80">${title}</div>
+          <div class="text-sm mt-0.5">${message}</div>
+        </div>
+        <button class="text-slate-400 hover:text-white text-sm font-bold px-1" onclick="this.parentElement.remove()">✕</button>
+      `;
+      container.appendChild(el);
+      setTimeout(() => { if (el.parentElement) el.remove(); }, 4500);
+    }
+
+    function addAuditLog(event, detail) {
+      const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+      state.auditLogs.unshift({
+        id: 'aud_' + Date.now(),
+        time: now,
+        event,
+        actor: state.ownerUser.email,
+        detail
+      });
+    }
+
+    function toggleDarkMode() {
+      state.darkMode = !state.darkMode;
+      if (state.darkMode) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+      render();
+    }
+
+    const API_BASE = '';
+    async function apiRequest(path, options = {}) {
+      const response = await fetch(API_BASE + path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || ('Request failed (' + response.status + ')'));
+      return data;
+    }
+    function setAuthMode(mode) { state.authMode = mode; state.authMessage = ''; render(); }
+    async function refreshCloudData() {
+      const results = await Promise.all([apiRequest('/api/devices'), apiRequest('/api/files')]);
+      state.devices = (results[0].devices || []).map((d, i) => ({ id:d.id, code:'Device ' + (i+1), name:d.name, type:d.type, platformLabel:d.platform || d.type, onlineStatus:'Registered', osVersion:d.platform || 'Browser registered', googleEmail:state.ownerUser.email, deviceFingerprint:d.deviceKey, lastActive:d.lastSeenAt, backedUpFiles:0, backupSizeGB:0, lastBackupTime:'No backup yet', backupMode:'MANUAL', wifiOnly:true, folders:['Camera','Screenshots','Downloads'] }));
+      state.mediaFiles = (results[1].files || []).map(f => ({ id:f.id, filename:f.name, format:f.contentType, sizeMB:(f.sizeBytes/1048576).toFixed(2), resolution:'Original file', captureDate:f.createdAt, sources:['Cloudflare R2'], note:'File metadata from private database.' }));
+      render();
+    }
+    async function submitAuth() {
+      const email = document.getElementById('auth-email')?.value?.trim();
+      const password = document.getElementById('auth-password')?.value;
+      const displayName = document.getElementById('auth-display-name')?.value?.trim();
+      try {
+        const path = state.authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        const payload = state.authMode === 'register' ? { email, password, displayName } : { email, password };
+        const result = await apiRequest(path, { method:'POST', body:JSON.stringify(payload) });
+        state.isAuthenticated = true;
+        state.ownerUser = { id:result.user.id, name:result.user.displayName, email:result.user.email, linkedGmails:[], authProvider:'Cloudflare Worker Session', sessionId:result.user.id };
+        state.currentTab = 'devices_hub'; state.authMessage = ''; await refreshCloudData();
+      } catch (error) { state.authMessage = error.message; render(); }
+    }
+    async function bootstrap() {
+      try { const health = await apiRequest('/api/health'); state.r2Status = health.storage; } catch { state.r2Status = 'unavailable'; }
+      try { const result = await apiRequest('/api/auth/me'); state.isAuthenticated = true; state.ownerUser = { id:result.user.id, name:result.user.displayName, email:result.user.email, linkedGmails:[], authProvider:'Cloudflare Worker Session', sessionId:result.user.id }; await refreshCloudData(); }
+      catch { render(); }
+    }
+    async function handleLogout() {
+      try { await apiRequest('/api/auth/logout', { method:'POST', body:'{}' }); } catch {}
+      state.isAuthenticated = false; state.devices = []; state.mediaFiles = []; state.connectedAccounts = []; state.backupActivity = []; render();
+    }
+    function lockVaultNow() { showToast('Session active', 'Your Cloudflare account session is active. Use Sign out to end it.', 'info'); }
+
+    function switchTab(tab) {
+      state.currentTab = tab;
+      if (tab === 'devices_hub') {
+        state.activeDeviceId = null;
+        state.activeDeviceSubView = 'DUAL_BOX';
+      }
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openDeviceDualBox(devId) {
+      state.currentTab = 'devices_hub';
+      state.activeDeviceId = devId;
+      state.activeDeviceSubView = 'DUAL_BOX';
+      const dev = state.devices.find(d => d.id === devId);
+      if (dev) state.selectedGoogleAccountForLibrary = dev.googleEmail;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openDeviceSpecificGallery(devId, folder = 'All Photos') {
+      state.currentTab = 'devices_hub';
+      state.activeDeviceId = devId;
+      state.activeDeviceSubView = 'DEVICE_GALLERY';
+      state.activeDeviceFolder = folder;
+      state.selectedMediaIds = [];
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openDeviceGoogleLibrary(devId) {
+      state.currentTab = 'devices_hub';
+      state.activeDeviceId = devId;
+      state.activeDeviceSubView = 'GOOGLE_LIBRARY';
+      const dev = state.devices.find(d => d.id === devId);
+      if (dev) state.selectedGoogleAccountForLibrary = dev.googleEmail;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // PROVIDER & DEVICE MUTATION ACTIONS
+    // ==========================================
+    function openConnectModal() {
+      showToast('Integration not implemented', 'Provider authorization is not configured. No account has been connected and no credentials have been saved.', 'warn');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal-container');
+      if (modal) modal.innerHTML = '';
+    }
+
+    function confirmConnectProvider() {
+      closeModal();
+      showToast('Integration not implemented', 'No OAuth/API connection is configured. No account was connected and no token was saved.', 'warn');
+    }
+
+        function disconnectAccount(connId) {
+      const idx = state.connectedAccounts.findIndex(c => c.id === connId);
+      if (idx === -1) return;
+      const removed = state.connectedAccounts[idx];
+      state.connectedAccounts.splice(idx, 1);
+      let p = 1;
+      state.connectedAccounts.forEach(c => {
+        if (c.priority !== null) {
+          c.priority = p++;
+          c.role = c.priority === 1 ? 'PRIMARY' : (c.priority === 2 ? 'SECONDARY' : 'ADDITIONAL');
+          c.subtitle = c.priority === 1 ? 'Primary Storage' : (c.priority === 2 ? 'Secondary Storage' : 'Future / Overflow Storage');
+        }
+      });
+      addAuditLog('PROVIDER_RECORD_REMOVED', `Removed the disconnected provider record ${removed.label}.`);
+      showToast('Provider record removed', `Removed ${removed.label}. No provider credentials were revoked because no OAuth connection exists.`, 'warn');
+      render();
+    }
+
+    function testConnection() {
+      showToast('Connection test unavailable', 'There is no live provider API connection to test in this prototype.', 'warn');
+    }
+
+    function reconnectAccount() {
+      showToast('Token refresh unavailable', 'No OAuth session or token vault exists in this prototype. No token was refreshed.', 'warn');
+    }
+
+    function openAddDeviceModal() {
+      const modal = document.getElementById('modal-container');
+      modal.innerHTML = '<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"><div class="bg-slate-900 rounded-2xl max-w-lg w-full p-6 space-y-4"><h3 class="font-bold text-lg">Register This Device</h3><p class="text-xs text-emerald-300">এই ডিভাইসটি Cloudflare D1 Database-এ নিবন্ধিত হবে।</p><input id="new-dev-name" maxlength="80" required placeholder="Device name" class="w-full px-3 py-2 rounded-xl bg-black border border-slate-700"/><select id="new-dev-type" class="w-full px-3 py-2 rounded-xl bg-black border border-slate-700"><option>Android Phone</option><option>iPhone</option><option>Windows PC</option><option>Laptop</option><option>Tablet</option></select><div class="flex justify-end gap-2"><button onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded-xl">Cancel</button><button onclick="confirmAddDevice()" class="px-4 py-2 bg-emerald-600 rounded-xl">Register Device</button></div></div></div>';
+    }
+    async function confirmAddDevice() {
+      const name=document.getElementById('new-dev-name')?.value?.trim(); const type=document.getElementById('new-dev-type')?.value || 'Android Phone';
+      if(!name){showToast('Name required','Enter a device name.','warn');return;}
+      try {
+        let deviceKey=localStorage.getItem('hub_device_key'); if(!deviceKey){deviceKey=crypto.randomUUID().replace(/-/g,'');localStorage.setItem('hub_device_key',deviceKey);}
+        await apiRequest('/api/devices/register',{method:'POST',body:JSON.stringify({deviceKey,name,type,platform:navigator.platform || navigator.userAgent})});
+        closeModal(); await refreshCloudData(); showToast('Device registered','Saved to your private D1 database.','success');
+      } catch(error){showToast('Registration failed',error.message,'warn');}
+    }
+    async function revokeLostDevice(deviceId) {
+      try { await apiRequest('/api/devices/' + encodeURIComponent(deviceId), { method: 'DELETE' }); await refreshCloudData(); showToast('Device revoked', 'This device registration was revoked in the database.', 'success'); }
+      catch (error) { showToast('Revocation failed', error.message, 'warn'); }
+    }
+
+    function deleteSelectedDeviceMedia() {
+      if (state.selectedMediaIds.length === 0) return;
+      const count = state.selectedMediaIds.length;
+      state.mediaFiles = state.mediaFiles.filter(m => !state.selectedMediaIds.includes(m.id));
+      state.selectedMediaIds = [];
+      addAuditLog('GALLERY_MEDIA_DELETED', `Deleted ${count} selected media file(s) from personal backup gallery.`);
+      showToast('Deleted Selected Files', `Removed ${count} item(s) from gallery.`, 'warn');
+      render();
+    }
+
+    // ==========================================
+    // STORAGE NETWORK PRIORITY & ROUTING
+    // ==========================================
+    function movePriority(connId, direction) {
+      const eligible = state.connectedAccounts.filter(c => c.priority !== null).sort((a, b) => a.priority - b.priority);
+      const idx = eligible.findIndex(c => c.id === connId);
+      if (idx === -1) return;
+      const swapIdx = idx + direction;
+      if (swapIdx < 0 || swapIdx >= eligible.length) return;
+
+      const temp = eligible[idx].priority;
+      eligible[idx].priority = eligible[swapIdx].priority;
+      eligible[swapIdx].priority = temp;
+
+      eligible.sort((a, b) => a.priority - b.priority).forEach((c, i) => {
+        c.priority = i + 1;
+        c.role = i === 0 ? 'PRIMARY' : (i === 1 ? 'SECONDARY' : 'ADDITIONAL');
+        c.subtitle = i === 0 ? 'Primary Storage' : (i === 1 ? 'Secondary Storage' : 'Future / Overflow Storage');
+      });
+
+      showToast('Priority Order Updated', 'Sequential Allocation Manager updated. Old files stay in their original location.', 'info');
+      render();
+    }
+
+    function updateThreshold(connId, val) {
+      const conn = state.connectedAccounts.find(c => c.id === connId);
+      if (!conn) return;
+      conn.thresholdPct = Math.max(50, Math.min(99, parseInt(val, 10) || 85));
+      render();
+    }
+
+    function toggleProviderUploadEligible(connId) {
+      const conn = state.connectedAccounts.find(c => c.id === connId);
+      if (!conn) return;
+      conn.enabledForUploads = !conn.enabledForUploads;
+      conn.statusBadge = conn.enabledForUploads ? 'Active' : 'Standby';
+      render();
+    }
+
+    function computeRoutingDecision(fileSizeMB) {
+      const sizeGB = fileSizeMB / 1024;
+      const candidates = state.connectedAccounts
+        .filter(c => c.priority !== null)
+        .sort((a, b) => a.priority - b.priority);
+
+      const trace = [];
+      let selected = null;
+
+      for (const acc of candidates) {
+        const usagePct = acc.totalGB ? ((acc.usedGB + sizeGB) / acc.totalGB) * 100 : 0;
+        if (!acc.enabledForUploads) {
+          trace.push({ acc, decision: 'STANDBY_SKIPPED', reason: 'Paused / Standby mode' });
+          continue;
+        }
+        if (acc.status !== 'HEALTHY') {
+          trace.push({ acc, decision: 'UNAVAILABLE', reason: `Status: ${acc.status}` });
+          continue;
+        }
+        if (acc.totalGB && usagePct > acc.thresholdPct) {
+          trace.push({
+            acc,
+            decision: 'THRESHOLD_FULL_OVERFLOW',
+            reason: `Projected ${usagePct.toFixed(1)}% exceeds ${acc.thresholdPct}% limit → Auto-switching to next storage`
+          });
+          continue;
+        }
+        if (!selected) {
+          selected = acc;
+          trace.push({
+            acc,
+            decision: 'SELECTED_TARGET',
+            reason: `Active & within ${acc.thresholdPct}% limit (${usagePct.toFixed(1)}% used)`
+          });
+        } else {
+          trace.push({
+            acc,
+            decision: 'STANDBY_OVERFLOW',
+            reason: 'Not currently receiving backups (Standby reserve)'
+          });
+        }
+      }
+      return { selected, trace };
+    }
+
+    function toggleSelectMedia(mediaId) {
+      const idx = state.selectedMediaIds.indexOf(mediaId);
+      if (idx === -1) state.selectedMediaIds.push(mediaId);
+      else state.selectedMediaIds.splice(idx, 1);
+      render();
+    }
+
+    function inspectMedia(mediaId) {
+      const item = state.mediaFiles.find(m => m.id === mediaId);
+      if (!item) return;
+      window.location.href = '/api/files/' + encodeURIComponent(mediaId);
+    }
+
+    function retryFailedJob() {
+      showToast('Backup not available', 'This prototype cannot upload or verify files. No retry was started and no file status was changed.', 'warn');
+    }
+
+    // ==========================================
+    // SCREEN 0: WELCOME / LOGIN & VAULT LOCK GATE
+    // ==========================================
+    function renderWelcomeScreen() {
+      return '<div class="min-h-screen flex flex-col justify-between bg-[#050507] text-white p-6">' +
+        '<div class="max-w-6xl w-full mx-auto flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center">☁️</div><b>My Private Cloud Hub</b></div>' +
+        '<div class="max-w-md w-full mx-auto my-auto py-10"><div class="bg-[#0c0d10] border border-slate-800 rounded-3xl p-8 space-y-5">' +
+        '<h1 class="text-2xl font-bold text-center">Private Account</h1><p class="text-sm text-slate-400">প্রথমবার Owner Account তৈরি করুন। পরে Login করুন।</p>' +
+        '<div class="flex gap-2"><button onclick="setAuthMode(\'register\')" class="flex-1 py-2 rounded-lg bg-slate-800">Create Owner Account</button><button onclick="setAuthMode(\'login\')" class="flex-1 py-2 rounded-lg bg-slate-800">Login</button></div>' +
+        '<form onsubmit="event.preventDefault();submitAuth()" class="space-y-3">' +
+        (state.authMode === 'register' ? '<input id="auth-display-name" required maxlength="80" placeholder="Your name" class="w-full px-4 py-3 rounded-xl bg-black border border-slate-800" />' : '') +
+        '<input id="auth-email" type="email" required placeholder="Email address" autocomplete="username" class="w-full px-4 py-3 rounded-xl bg-black border border-slate-800" />' +
+        '<input id="auth-password" type="password" minlength="12" required placeholder="Password (minimum 12 characters)" autocomplete="current-password" class="w-full px-4 py-3 rounded-xl bg-black border border-slate-800" />' +
+        '<button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 text-black font-bold">' + (state.authMode === 'register' ? 'Create Owner Account' : 'Login Securely') + '</button></form>' +
+        (state.authMessage ? '<div role="alert" class="text-rose-300 text-xs">' + state.authMessage + '</div>' : '') +
+        '<p class="text-xs text-slate-500">প্রথম অ্যাকাউন্ট তৈরি হলে নতুন public registration বন্ধ থাকবে। Cloudflare Backend চালু না থাকলে Login কাজ করবে না।</p></div></div>' +
+        '<div class="text-center text-xs text-slate-600">Private account access only.</div></div>';
+    }
+    // ==========================================
+    // SCREEN 1 & 2: REGISTERED DEVICES HUB + DUAL SIDE-BY-SIDE BOXES
+    // ==========================================
+    function renderDevicesHubTab() {
+      // If a specific device is selected for Dual-Box or Drill-Down:
+      if (state.activeDeviceId) {
+        const dev = state.devices.find(d => d.id === state.activeDeviceId);
+        if (!dev) {
+          state.activeDeviceId = null;
+        } else if (state.activeDeviceSubView === 'DEVICE_GALLERY') {
+          return renderDeviceSpecificGalleryView(dev);
+        } else if (state.activeDeviceSubView === 'GOOGLE_LIBRARY') {
+          return renderDeviceGoogleLibraryView(dev);
+        } else {
+          return renderFocusedDualBoxView(dev);
+        }
+      }
+
+      // Default Hub Landing: IMAGE 1 (Registered Devices List First — No Raw Photos Upfront!)
+      return `
+        <div class="space-y-6 fade-in">
+          <!-- Mode & Architectural Banner -->
+          <div class="p-4 rounded-2xl bg-[#0c0d10] border border-slate-800/90 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  Device-First Hub Entry (Image 1 &amp; 2)
+                </span>
+                <span class="text-sm font-bold text-white">
+                  প্রথমে কোনো ছবি আসবে না — প্রথমে আপনার যুক্ত ডিভাইসগুলোর তালিকা
+                </span>
+              </div>
+              <p class="text-xs text-slate-400">
+                প্রতিটি নিবন্ধিত ডিভাইসের জন্য আলাদা Card এবং আলাদা ফাইল তালিকা থাকবে।
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <button onclick="openAddDeviceModal()" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold">
+                + Register Device
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Header Row matching Screenshot 1 -->
+          <div class="flex items-center justify-between pt-1">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold tracking-tight">Registered Devices</h2>
+              <p class="text-xs text-slate-400">Device-এর ধরন অনুযায়ী Icon স্বয়ংক্রিয়ভাবে পরিবর্তিত হয় (Smartphone, iPhone, Monitor, Laptop, Tablet)</p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-500/40 text-emerald-400 text-xs font-semibold">
+              ${state.devices.length} Devices
+            </span>
+          </div>
+
+          ${state.devices.length === 0 ? `
+            <div class="p-10 rounded-3xl bg-[#0c0d10] border border-slate-800 text-center space-y-4">
+              <div class="text-lg font-bold">0 Registered Devices (First-Time Empty State)</div>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">
+                আপনার অ্যাকাউন্টে এখনো কোনো ডিভাইস নিবন্ধিত হয়নি। বাস্তব নিবন্ধনের জন্য Register Device চাপুন।
+              </p>
+              <div class="flex justify-center gap-3">
+                <button onclick="openAddDeviceModal()" class="px-4 py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">+ Register First Device</button>
+
+              </div>
+            </div>
+          ` : `
+            <!-- Registered Device Cards Stack (Matching Screenshot 1 & 2) -->
+            <div class="space-y-5">
+              ${state.devices.map(dev => {
+                const isOnline = dev.onlineStatus === 'Online';
+                const isRevoked = dev.onlineStatus.includes('Revoked');
+                return `
+                  <div class="rounded-3xl bg-[#0a0b0e] border ${isRevoked ? 'border-rose-500/40 opacity-75' : 'border-slate-800/90 hover:border-slate-700'} p-5 sm:p-6 shadow-xl transition-all space-y-5">
+                    <!-- Device Card Top Header -->
+                    <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+                      <div class="space-y-1.5">
+                        <div class="flex items-center gap-3">
+                          <div class="p-2.5 rounded-2xl bg-slate-900 border border-slate-800">
+                            ${getDeviceTypeIconSvg(dev.type, isOnline ? 'text-emerald-400' : 'text-slate-400')}
+                          </div>
+                          <div>
+                            <h3 class="font-bold text-base sm:text-lg text-white leading-tight">${dev.name}</h3>
+                            <div class="text-xs text-slate-400 font-medium">${dev.code} · ${dev.platformLabel}</div>
+                          </div>
+                        </div>
+                        <div class="text-xs text-slate-400 pt-1">
+                          Account: <span class="text-slate-200 font-mono">${dev.googleEmail}</span>
+                          <span class="ml-2 text-[11px] font-mono text-slate-500">(ID: ${dev.deviceFingerprint})</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                          isOnline
+                            ? 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
+                            : isRevoked
+                            ? 'bg-rose-950 border border-rose-500/40 text-rose-400'
+                            : 'bg-slate-800 text-slate-300'
+                        }">
+                          ${dev.onlineStatus}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- TWO SIDE-BY-SIDE BOXES UNDER EACH DEVICE (Matching Image 1 & Image 2) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <!-- BOX 1: DEVICE GALLERY (Personal Storage Server Backup) -->
+                      <div onclick="openDeviceSpecificGallery('${dev.id}', 'All Photos')"
+                        class="cursor-pointer group rounded-2xl bg-[#070908] border-2 border-emerald-500/60 hover:border-emerald-400 p-5 transition-all flex flex-col justify-between text-center space-y-4 shadow-lg shadow-emerald-950/20">
+                        <div class="space-y-1.5">
+                          <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto">
+                            ${getDeviceTypeIconSvg(dev.type, 'text-emerald-400')}
+                          </div>
+                          <div class="font-bold text-base text-white">Device Gallery</div>
+                          <div class="text-xs text-slate-400">নিজস্ব ডিভাইসের ছবি ও ভিডিও (Personal Backup Storage)</div>
+                        </div>
+
+                        <div class="border-t border-slate-800/80 pt-3 space-y-1">
+                          <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 tracking-tight">
+                            ${dev.backedUpFiles.toLocaleString()}
+                          </div>
+                          <div class="text-xs text-slate-400">Backed-up files (${dev.backupSizeGB} GB in R2 / Storage Network)</div>
+                        </div>
+
+                        <div class="pt-1">
+                          <span class="inline-flex items-center gap-1.5 text-xs font-bold text-white group-hover:text-emerald-400 transition">
+                            Open Gallery →
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- BOX 2: GOOGLE LIBRARY (External Cloud — Drive & Photos without copying to R2) -->
+                      <div onclick="openDeviceGoogleLibrary('${dev.id}')"
+                        class="cursor-pointer group rounded-2xl bg-[#07080c] border border-slate-800 hover:border-blue-500/60 p-5 transition-all flex flex-col justify-between text-center space-y-4">
+                        <div class="space-y-1.5">
+                          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto">
+                            <svg class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                          </div>
+                          <div class="font-bold text-base text-white">Google Library</div>
+                          <div class="text-xs text-slate-400">Google Drive ও Photos (${dev.googleEmail})</div>
+                        </div>
+
+                        <div class="border-t border-slate-800/80 pt-3 space-y-1">
+                          <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                            Google
+                          </div>
+                          <div class="text-xs text-slate-400">External Cloud Files (No Duplicate Copy on R2)</div>
+                        </div>
+
+                        <div class="pt-1">
+                          <span class="inline-flex items-center gap-1.5 text-xs font-bold text-white group-hover:text-blue-400 transition">
+                            Open Library →
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Footer Actions on Device Card -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-slate-400">
+                      <div>Folders: ${dev.folders.map(f => `<span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px] mr-1">${f}</span>`).join('')}</div>
+                      <div class="flex items-center gap-3">
+                        <button onclick="openDeviceDualBox('${dev.id}')" class="text-slate-300 hover:text-emerald-400 font-semibold">
+                          View Device Card Focus →
+                        </button>
+                        ${!isRevoked ? `
+                          <button onclick="revokeLostDevice('${dev.id}')" class="text-rose-400 hover:underline">
+                            Revoke Lost Device
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // Focused Image 2 View for a Single Device
+    function renderFocusedDualBoxView(dev) {
+      return `
+        <div class="space-y-6 fade-in max-w-4xl mx-auto">
+          <div class="flex items-center justify-between">
+            <button onclick="state.activeDeviceId = null; render();" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold hover:border-slate-700">
+              ← Back to All Registered Devices
+            </button>
+            <span class="text-xs font-mono text-emerald-400">Image 2 View • Dual-Box Device Architecture</span>
+          </div>
+
+          <div class="rounded-3xl bg-[#08090c] border border-slate-800 p-6 sm:p-8 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-2xl font-bold text-white">${dev.name}</h2>
+                <p class="text-sm text-slate-400 mt-0.5">${dev.googleEmail}</p>
+              </div>
+              <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+                ${getDeviceTypeIconSvg(dev.type, 'text-emerald-400')}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- Box 1 -->
+              <div onclick="openDeviceSpecificGallery('${dev.id}', 'All Photos')"
+                class="cursor-pointer rounded-3xl bg-[#060907] border-2 border-emerald-500 p-7 text-center space-y-5 hover:bg-emerald-950/10 transition">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto">
+                  ${getDeviceTypeIconSvg(dev.type, 'text-emerald-400')}
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-white">Device Gallery</h3>
+                  <p class="text-xs text-slate-400 mt-1">নিজস্ব ডিভাইসের ছবি ও ভিডিও</p>
+                </div>
+                <div class="border-t border-slate-800 pt-4">
+                  <div class="text-3xl font-extrabold text-emerald-400">${dev.backedUpFiles.toLocaleString()}</div>
+                  <div class="text-xs text-slate-400 mt-1">Backed-up files</div>
+                </div>
+                <div class="text-sm font-bold text-white">Open Gallery</div>
+              </div>
+
+              <!-- Box 2 -->
+              <div onclick="openDeviceGoogleLibrary('${dev.id}')"
+                class="cursor-pointer rounded-3xl bg-[#07080d] border border-slate-800 hover:border-blue-500 p-7 text-center space-y-5 transition">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto">
+                  <svg class="w-7 h-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-white">Google Library</h3>
+                  <p class="text-xs text-slate-400 mt-1">Google Drive ও Photos</p>
+                </div>
+                <div class="border-t border-slate-800 pt-4">
+                  <div class="text-3xl font-extrabold text-white">Google</div>
+                  <div class="text-xs text-slate-400 mt-1">External Cloud Files</div>
+                </div>
+                <div class="text-sm font-bold text-white">Open Library</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Drill-down 1: Full Device Gallery (Folders: Camera, Screenshots, Downloads, Pictures, WhatsApp Images, WhatsApp Videos, Others)
+    function renderDeviceSpecificGalleryView(dev) {
+      const deviceItems = state.mediaFiles
+        .filter(m => m.deviceId === dev.id && !m.isExternal)
+        .filter(m => state.activeDeviceFolder === 'All Photos' || m.folderCategory === state.activeDeviceFolder)
+        .sort((a, b) => state.deviceGallerySortOrder === 'DESC'
+          ? b.captureDate.localeCompare(a.captureDate)
+          : a.captureDate.localeCompare(b.captureDate));
+
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <button onclick="state.activeDeviceId = null; render();" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold hover:border-slate-700">
+                ← All Devices
+              </button>
+              <button onclick="openDeviceGoogleLibrary('${dev.id}')" class="px-3.5 py-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold">
+                Switch to Google Library (${dev.googleEmail}) →
+              </button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="state.deviceGallerySortOrder = state.deviceGallerySortOrder === 'DESC' ? 'ASC' : 'DESC'; render();" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
+                Sort Date: ${state.deviceGallerySortOrder === 'DESC' ? 'Newest First ↓' : 'Oldest First ↑'}
+              </button>
+              ${state.selectedMediaIds.length > 0 ? `
+                <button onclick="showToast('Batch Signed Download', 'Downloading ' + state.selectedMediaIds.length + ' files from ' + '${dev.name}', 'success')" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">
+                  Download Selected (${state.selectedMediaIds.length})
+                </button>
+                <button onclick="deleteSelectedDeviceMedia()" class="px-3.5 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-bold">
+                  Delete Selected (${state.selectedMediaIds.length})
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="p-5 rounded-3xl bg-[#0a0b0e] border border-emerald-500/40 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400">
+                  ${getDeviceTypeIconSvg(dev.type, 'text-emerald-400')}
+                </div>
+                <div>
+                  <h2 class="text-xl font-bold">${dev.name} — Device Gallery</h2>
+                  <p class="text-xs text-slate-400">
+                    শুধুমাত্র <strong>${dev.name} (${dev.code})</strong> থেকে আপনার Personal Storage Server-এ Backup হওয়া ছবি ও ভিডিও।
+                  </p>
+                </div>
+              </div>
+              <span class="text-xs font-mono px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                Total Device Backups: ${dev.backedUpFiles.toLocaleString()}
+              </span>
+            </div>
+
+            <!-- Folder Pills (Camera, Screenshots, Downloads, Pictures, WhatsApp Images, WhatsApp Videos, Other Folders) -->
+            <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80">
+              ${DEVICE_FOLDER_CATEGORIES.map(folder => {
+                const count = folder === 'All Photos'
+                  ? state.mediaFiles.filter(m => m.deviceId === dev.id).length
+                  : state.mediaFiles.filter(m => m.deviceId === dev.id && m.folderCategory === folder).length;
+                const active = state.activeDeviceFolder === folder;
+                return `
+                  <button onclick="state.activeDeviceFolder = '${folder}'; render();"
+                    class="px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
+                      active
+                        ? 'bg-emerald-500 text-slate-950 font-bold shadow'
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                    }">
+                    <span>📁 ${folder}</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono ${active ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-400'}">${count}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          ${deviceItems.length === 0 ? `
+            <div class="p-8 rounded-2xl bg-[#0a0b0e] border border-slate-800 text-center space-y-2">
+              <div class="text-base font-bold">এই ফোল্ডারে (${state.activeDeviceFolder}) কোনো ডেমো ফাইল নেই</div>
+              <p class="text-xs text-slate-400">"All Photos", "Camera", "Screenshots", "WhatsApp Images", "WhatsApp Videos" বা "Downloads" ফোল্ডারে ক্লিক করে ব্যাকআপ ফাইলগুলো দেখুন।</p>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              ${deviceItems.map(m => {
+                const isSelected = state.selectedMediaIds.includes(m.id);
+                return `
+                  <div class="rounded-2xl bg-[#0a0b0e] border ${isSelected ? 'border-emerald-400 ring-2 ring-emerald-500/30' : 'border-slate-800'} overflow-hidden flex flex-col justify-between shadow-lg">
+                    <div>
+                      <div class="h-40 bg-gradient-to-br ${m.gradient} p-4 flex flex-col justify-between relative">
+                        <div class="flex items-center justify-between">
+                          <label class="inline-flex items-center gap-2 cursor-pointer bg-black/70 px-2.5 py-1 rounded-lg text-xs text-white">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectMedia('${m.id}')" class="rounded" />
+                            <span>Select</span>
+                          </label>
+                          <span class="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-black/75 text-emerald-400 border border-emerald-500/30">
+                            ☁️ ${m.providerLabel}
+                          </span>
+                        </div>
+
+                        <div class="flex items-center justify-center">
+                          <button onclick="inspectMedia('${m.id}')" class="px-3.5 py-1.5 rounded-xl bg-black/70 hover:bg-black text-white text-xs font-semibold backdrop-blur-md">
+                            ${m.type === 'VIDEO' ? '▶️ ভিডিও চালান (Play Video)' : '🔍 ছবি বড় করে দেখুন (Zoom)'}
+                          </button>
+                        </div>
+
+                        <div class="flex items-end justify-between text-white text-[11px] font-mono">
+                          <span class="bg-black/60 px-2 py-0.5 rounded">📁 ${m.folderCategory}</span>
+                          <span class="bg-black/60 px-2 py-0.5 rounded">${m.sizeMB} MB • ${m.format}</span>
+                        </div>
+                      </div>
+
+                      <div class="p-4 space-y-1.5 text-xs">
+                        <div class="font-bold text-sm text-white truncate">${m.filename}</div>
+                        <div class="text-slate-400 flex justify-between">
+                          <span>তারিখ: ${m.captureDate}</span>
+                          <span>${m.resolution}</span>
+                        </div>
+                        <div class="text-[11px] text-emerald-400 font-mono truncate">
+                          Stored in: ${m.providerLabel}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="px-4 py-3 bg-slate-900/70 border-t border-slate-800 flex items-center justify-between text-xs">
+                      <button onclick="inspectMedia('${m.id}')" class="text-emerald-400 font-semibold hover:underline">
+                        Storage Details &amp; View
+                      </button>
+                      <button onclick="showToast('Signed Download', 'Downloading ' + '${m.filename}', 'success')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 font-semibold transition">
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // Drill-down 2: External Google Library (Account-based, Zero Duplicate Backup to R2, Official Picker & Narrow Drive Browsing)
+    function renderDeviceGoogleLibraryView(dev) {
+      const allGmails = Array.from(new Set([dev.googleEmail, ...state.ownerUser.linkedGmails]));
+      const activeEmail = state.selectedGoogleAccountForLibrary || dev.googleEmail;
+      const items = state.externalGoogleItems.filter(g => g.googleEmail === activeEmail);
+
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <button onclick="state.activeDeviceId = null; render();" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold hover:border-slate-700">
+                ← All Devices
+              </button>
+              <button onclick="openDeviceSpecificGallery('${dev.id}', 'All Photos')" class="px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                ← Switch to ${dev.name} Personal Backup Gallery
+              </button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="showToast('Google Photos Official Picker', 'Opened session-scoped Google Photos Picker for ' + '${activeEmail}' + '. Files stay in Google Cloud — 0 bytes duplicated to R2.', 'info')"
+                class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold">
+                + Launch Official Google Photos Picker
+              </button>
+              <button onclick="showToast('Google Drive Folder Picker', 'Opened authorized Drive folder browser for ' + '${activeEmail}' + '.', 'info')"
+                class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">
+                Browse Authorized Drive Folders
+              </button>
+            </div>
+          </div>
+
+          <!-- Crucial Architectural Guarantee Banner -->
+          <div class="p-5 rounded-3xl bg-[#070910] border border-blue-500/40 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span class="text-xs font-mono uppercase px-2.5 py-0.5 rounded bg-blue-500/20 text-blue-300">
+                  EXTERNAL CLOUD SOURCE • ACCOUNT-SCOPED (${activeEmail})
+                </span>
+                <h2 class="text-xl font-bold text-white mt-1.5">Google Library (Google Drive &amp; Google Photos)</h2>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-400">Select Google Account:</span>
+                <select onchange="state.selectedGoogleAccountForLibrary = this.value; render();"
+                  class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono text-xs">
+                  ${allGmails.map(em => `<option value="${em}" ${em === activeEmail ? 'selected' : ''}>${em}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-2">
+              <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div class="font-bold text-blue-400">১. R2-তে দ্বিতীয়বার জমা হবে না</div>
+                <p class="text-slate-400 mt-1">এই Box-এর ছবিগুলো আপনার Personal Storage Server (R2)-এ Backup হবে না; Google-এর নিজস্ব Cloud-এই থাকবে।</p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div class="font-bold text-emerald-400">২. Dual-Source Detection</div>
+                <p class="text-slate-400 mt-1">একই ছবি Google Drive এবং Google Photos উভয় স্থানে থাকলে দুটি Source হিসেবে দেখানো হয়, কিন্তু R2-তে ডুপ্লিকেট করা হয় না।</p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div class="font-bold text-purple-400">৩. Account-ভিত্তিক প্রদর্শন</div>
+                <p class="text-slate-400 mt-1">Google Photos নির্দিষ্ট কোনো ফোনের নয়, বরং পুরো <code class="font-mono">${activeEmail}</code> অ্যাকাউন্টের Cloud Library হিসেবে দেখানো হচ্ছে।</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${items.length === 0 ? `
+              <div class="md:col-span-2 p-8 rounded-2xl bg-[#0a0b0e] border border-slate-800 text-center text-xs text-slate-400">
+                এই অ্যাকাউন্টে কোনো External Google Drive ফাইল পাওয়া যায়নি। Google Drive সংযোগ এখনো কনফিগার করা হয়নি।
+              </div>
+            ` : items.map(item => `
+              <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 flex flex-col justify-between gap-4">
+                <div class="space-y-2.5">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                      EXTERNAL GOOGLE CLOUD (0 BYTES ON R2)
+                    </span>
+                    ${item.dualSource ? `
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        2 SOURCES (DRIVE + PHOTOS)
+                      </span>
+                    ` : ''}
+                  </div>
+                  <div class="font-bold text-base text-white">${item.filename}</div>
+                  <div class="text-xs text-slate-400">${item.format} • ${item.sizeMB} MB • ${item.resolution} • ${item.captureDate}</div>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    ${item.sources.map(src => `<span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[11px] font-mono text-blue-300">☁️ ${src}</span>`).join('')}
+                  </div>
+                  <p class="text-xs text-slate-400 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80">${item.note}</p>
+                </div>
+                <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
+                  <span class="text-slate-500 font-mono">Account: ${item.googleEmail}</span>
+                  <button onclick="showToast('Streaming from Google Cloud', 'Opening ' + '${item.filename}' + ' directly from Google servers without copying to R2.', 'info')"
+                    class="px-3 py-1.5 rounded-xl bg-blue-600/20 text-blue-300 hover:bg-blue-600 hover:text-white font-semibold transition">
+                    View in Interface
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // SCREEN 3: MY STORAGE NETWORK (MATCHING IMAGE 3 + ALLOCATION MANAGER)
+    // ==========================================
+    function renderStorageNetworkTab() {
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+            <h2 class="text-xl font-bold">Storage Connections</h2>
+            <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800">
+              <div><div class="font-semibold">Cloudflare R2 — Private Object Storage</div><p class="text-xs text-slate-400">Primary file bucket used by the Worker API.</p></div>
+              <span class="text-xs font-bold ${state.r2Status === 'connected' ? 'text-emerald-400' : 'text-amber-300'}">${state.r2Status || 'Not verified'}</span>
+            </div>
+            <p class="text-xs text-slate-400">R2 status is read from the deployed backend health endpoint. No storage capacity or provider account is shown unless the API reports real data.</p>
+          </div>
+          <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+            <h3 class="font-bold">External Cloud Providers</h3>
+            <p class="text-sm text-slate-400">Google Drive, Google Photos, OneDrive, Dropbox, pCloud, MEGA, TeraBox and other external services are not connected. Their OAuth/API integrations must be implemented and authorized separately.</p>
+            <button onclick="switchTab('connections')" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-semibold">View provider integration status</button>
+          </div>
+        </div>`;
+    }
+    function renderCompanionTab() {
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold">Planned Android Companion &amp; Backup Design</h2>
+              <p class="text-xs text-amber-300">Native Android Companion App ও WorkManager এখনো তৈরি হয়নি। তাই background camera backup চালু নেই।</p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-mono">
+              Automatic Backup: Not Active
+            </span>
+          </div>
+
+          <!-- 5 First-Time Onboarding Steps on Phone -->
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+            <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800">
+              <div class="text-emerald-400 font-bold mb-1">Step 1 • Device Name</div>
+              <p class="text-slate-400">প্রথমবার ফোনের আলাদা নাম ও Hardware UUID নিবন্ধন করে।</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800">
+              <div class="text-emerald-400 font-bold mb-1">Step 2 • Hub Sign-In</div>
+              <p class="text-slate-400">একটি Google Account দিয়ে Central Hub-এ Sign-in করে।</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800">
+              <div class="text-emerald-400 font-bold mb-1">Step 3 • Media Permission</div>
+              <p class="text-slate-400">Android <code class="font-mono">READ_MEDIA_IMAGES / VIDEO</code> অনুমোদন নেয়।</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800">
+              <div class="text-emerald-400 font-bold mb-1">Step 4 • Folder Selection</div>
+              <p class="text-slate-400">Camera, Screenshots, WhatsApp ইত্যাদি কোন কোন ফোল্ডার Backup হবে তা নির্বাচন করে।</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800">
+              <div class="text-emerald-400 font-bold mb-1">Step 5 • Network Policy</div>
+              <p class="text-slate-400">Wi-Fi Only নাকি Mobile Data-তেও Backup চলবে তা নির্ধারণ করে।</p>
+            </div>
+          </div>
+
+          <!-- WorkManager Reality & 5 Required Backup Statuses -->
+          <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+              <div>
+                <h3 class="text-base font-bold text-white">Automatic Backup Status</h3>
+                <p class="text-xs text-slate-400">
+                  Native Android Companion App না থাকায় Background WorkManager upload এখনো চালু নয়।
+                </p>
+              </div>
+              <span class="text-xs font-mono text-amber-400">Cloud Verify হওয়ার আগে Local ছবি কখনো মুছবে না</span>
+            </div>
+
+            <div class="space-y-3">
+              ${state.backupActivity.map(job => {
+                const badgeStyles = {
+                  'Completed': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+                  'Uploading': 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+                  'Pending': 'bg-slate-800 text-slate-300 border-slate-700',
+                  'Failed': 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+                  'Retry Scheduled': 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                };
+                return `
+                  <div class="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border ${badgeStyles[job.status] || badgeStyles['Pending']}">
+                          ${'No automatic backup jobs'}
+                        </span>
+                        <span class="font-bold text-sm text-white">${job.filename}</span>
+                        <span class="text-xs text-slate-400">(${job.sizeMB} MB)</span>
+                      </div>
+                      <div class="text-xs text-slate-400">
+                        Device: <strong>${job.sourceDevice}</strong> → Target: <strong class="text-emerald-400">${job.destinationProvider}</strong> • ${job.timestamp}
+                      </div>
+                      <div class="text-[11px] font-mono ${job.localDeleteSafe ? 'text-emerald-400' : 'text-amber-400'}">
+                        No automatic backup job is running.
+                      </div>
+                      ${job.errorInfo ? `<div class="text-xs text-rose-300 bg-rose-950/50 border border-rose-500/30 p-2 rounded-xl mt-1">${job.errorInfo}</div>` : ''}
+                    </div>
+
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="w-32">
+                        <div class="flex justify-between text-xs mb-1">
+                          <span>Progress unavailable</span>
+                          <span class="font-mono">${job.progress}%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                          <div class="h-full ${job.status === 'Completed' ? 'bg-emerald-500' : job.status === 'Failed' ? 'bg-rose-500' : 'bg-blue-500'}" style="width: ${job.progress}%"></div>
+                        </div>
+                      </div>
+                      ${(job.status === 'Failed' || job.status === 'Retry Scheduled') ? `
+                        <button onclick="retryFailedJob('${job.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">
+                          Verify &amp; Retry Now
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // SCREEN 5: 6-LAYER ZERO-COMPROMISE SECURITY ARCHITECTURE
+    // ==========================================
+    function renderSecurityTab() {
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold">Security Status</h2>
+              <p class="text-xs text-amber-300">কিছু মৌলিক নিয়ন্ত্রণ Backend-এ চালু আছে; নিচে বাস্তব ও অসম্পূর্ণ নিয়ন্ত্রণ আলাদা করে দেখানো হয়েছে।</p>
+            </div>
+            <button disabled aria-disabled="true" class="px-4 py-2 rounded-xl bg-slate-800 text-amber-300 text-xs font-bold cursor-not-allowed">
+              Security test unavailable (not implemented)
+            </button>
+          </div>
+
+          <div class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-200">
+            Implemented: PBKDF2 password hashing, server-side sessions, login throttling, authenticated R2 API, and device record registration/revocation. Not implemented: hardware-bound device authorization, provider token vault, checksum verification, 2FA, account recovery, or security audit ledger.
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-400 font-mono font-bold">LAYER 1 • MASTER PASSWORD</div>
+              <div class="font-bold text-sm text-white">Server-Side PBKDF2-SHA-256 Hash &amp; Login Throttling</div>
+              <p class="text-slate-400">Password কখনো Source Code বা Frontend JS-এ থাকে না। Server-side Hash দ্বারা যাচাই হয়, ৩ বার ভুল হলে সাময়িক Lockout এবং নির্দিষ্ট সময় নিষ্ক্রিয় থাকলে Auto-Lock হয়।</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-400 font-mono font-bold">LAYER 2 • DEVICE AUTHENTICATION</div>
+              <div class="font-bold text-sm text-white">শুধু নিবন্ধিত Device থেকে প্রবেশ</div>
+              <p class="text-slate-400">ডিভাইসের নিবন্ধন ও Revoke API আছে; তবে এখনো Hardware-bound token নেই এবং API access শুধু session-এর ওপর নির্ভর করে।</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-400 font-mono font-bold">LAYER 3 • ENCRYPTED TOKEN VAULT</div>
+              <div class="font-bold text-sm text-white">Zero Tokens in HTML / LocalStorage</div>
+              <p class="text-slate-400">Google বা অন্য Provider-এর Refresh Token কখনো Browser LocalStorage-এ থাকে না। OAuth Token Vault এখনো তৈরি হয়নি; কোনো Provider Token সংরক্ষণ করা হচ্ছে না।</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-400 font-mono font-bold">LAYER 4 • PRIVATE STORAGE ACCESS</div>
+              <div class="font-bold text-sm text-white">Private R2 Bucket + Authenticated API</div>
+              <p class="text-slate-400">Cloudflare R2 bucket private থাকবে। ফাইল কেবল authenticated Worker API দিয়ে পড়া যাবে; signed URL এখনো implement করা হয়নি।</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-400 font-mono font-bold">LAYER 5 • ENCRYPTED TRANSFER</div>
+              <div class="font-bold text-sm text-white">HTTPS Transport (Checksum Pending)</div>
+              <p class="text-slate-400">Worker HTTPS ব্যবহার করে; SHA-256 Checksum verification এখনো implement করা হয়নি।</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-emerald-500/30 space-y-2">
+              <div class="text-emerald-400 font-mono font-bold">LAYER 6 • RECOVERY &amp; REVOCATION</div>
+              <div class="font-bold text-sm text-white">হারানো ফোনের Access তাৎক্ষণিক বন্ধ</div>
+              <p class="text-slate-400">কোনো ফোন হারিয়ে গেলে Dashboard থেকে Device record revoke করা যায়; তবে active session এখনো device-specific নয় (ভবিষ্যৎ Backup বা Cloud Access বন্ধ হয়; তবে আগে ডাউনলোড করা লোকাল ফাইলের গ্যারান্টি দাবি করা হয় না)।</p>
+            </div>
+          </div>
+
+          <!-- 5 Linked Gmail Accounts & Audit Trail -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+              <h3 class="font-bold text-sm text-white">External Provider Accounts (not connected)</h3>
+              <p class="text-xs text-amber-300">কোনো external Google/OneDrive/Dropbox account সংযুক্ত নেই। OAuth Token Vault এখনো তৈরি হয়নি।</p>
+              <p class="text-xs text-slate-400">No external provider accounts are connected. OAuth token storage is not implemented.</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+              <h3 class="font-bold text-sm text-white">Local session activity (not a security audit log)</h3>
+              <div class="space-y-2 max-h-60 overflow-y-auto custom-scroll pr-1">
+                ${state.auditLogs.map(log => `
+                  <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+                    <div class="flex justify-between">
+                      <span class="font-mono font-bold text-emerald-400">${log.event}</span>
+                      <span class="font-mono text-[10px] text-slate-500">${log.time}</span>
+                    </div>
+                    <p class="text-slate-400 mt-0.5">${log.detail}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // REMAINING TABS (CLOUD CONNECTIONS, UNIFIED GALLERY, DB SPEC)
+    // ==========================================
+    function renderConnectionsTab() {
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold">Cloud Connections &amp; Provider Catalog (All 9 Providers)</h2>
+              <p class="text-xs text-slate-400">
+                যেসব Provider-এর বৈধ API ও অনুমোদিত Upload সুবিধা আছে, শুধু সেগুলোই Allocation Manager-এ যুক্ত হয়।
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            ${PROVIDERS_CATALOG.map(p => {
+              const linked = state.connectedAccounts.filter(c => c.providerId === p.id);
+              const isVerified = false; // No provider integration is implemented in this frontend prototype.
+              return `
+                <div class="p-5 rounded-2xl bg-[#0a0b0e] border border-slate-800 flex flex-col justify-between gap-4">
+                  <div class="space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl bg-slate-900">${p.iconSvg}</div>
+                        <div>
+                          <h3 class="font-bold text-base">${p.name}</h3>
+                          <span class="text-[11px] text-slate-400">${p.category}</span>
+                        </div>
+                      </div>
+                      <span class="text-[10px] px-2 py-0.5 rounded-full font-mono ${isVerified ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400'}">
+                        ${p.apiBadge}
+                      </span>
+                    </div>
+                    <p class="text-xs text-slate-400">${p.description}</p>
+                    ${linked.map(acc => `
+                      <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs">
+                        <div class="flex justify-between font-semibold">
+                          <span>${acc.label}</span>
+                          <span class="text-amber-300 font-mono">${'NOT CONNECTED'}</span>
+                        </div>
+                        <div class="text-slate-400 font-mono text-[11px]">${acc.accountIdentifier}</div>
+                        <div class="flex gap-1.5 pt-1">
+                          <span class="text-amber-300 text-[11px]">No provider record is connected</span>
+                          <button onclick="disconnectAccount('${acc.id}')" class="px-2 py-1 rounded bg-slate-800 text-slate-300 text-[11px]">Remove record</button>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <button disabled aria-disabled="true" title="Backend and provider authorization are not implemented yet" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-800 text-amber-300 opacity-80 cursor-not-allowed">
+                    Integration not available yet
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    async function uploadSelectedFile() {
+      const input = document.getElementById('upload-file-input');
+      const file = input && input.files ? input.files[0] : null;
+      if (!file) { showToast('Choose a file', 'Select a file before uploading.', 'warn'); return; }
+      if (file.size > 100 * 1024 * 1024) { showToast('File too large', 'The current upload API limit is 100 MB.', 'warn'); return; }
+      try {
+        const response = await fetch('/api/files/upload', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': file.type || 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name) }, body: file });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Upload failed');
+        input.value = ''; await refreshCloudData();
+        showToast('Upload complete', 'The file was stored in the private R2 bucket.', 'success');
+      } catch (error) { showToast('Upload failed', error.message, 'warn'); }
+    }
+    function renderUnifiedGalleryTab() {
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold">Private Cloud Files</h2>
+              <p class="text-xs text-slate-400">
+                Cloudflare R2-তে সংরক্ষিত ফাইলগুলো এখানে দেখা যাবে। বর্তমান আপলোড সীমা 100 MB।
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2"><input id="upload-file-input" type="file" class="max-w-full text-xs text-slate-300" /><button onclick="uploadSelectedFile()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">Upload to R2</button></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            ${state.mediaFiles.map(m => `
+              <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-mono">Cloudflare R2</span>
+                  <span class="font-mono text-slate-400">${m.sizeMB} MB</span>
+                </div>
+                <div class="font-bold text-sm text-white truncate">${m.filename}</div>
+                <div class="text-xs text-emerald-400 font-mono truncate">Stored in private cloud metadata</div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
+                  <span class="text-slate-500">${m.captureDate.split(' ')[0]}</span>
+                  <button onclick="inspectMedia('${m.id}')" class="text-emerald-400 font-semibold hover:underline">Download →</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderArchitectureTab() {
+      return `
+        <div class="space-y-6 fade-in">
+          <div class="p-6 rounded-3xl bg-[#0a0b0e] border border-slate-800 space-y-3">
+            <h2 class="text-xl font-bold">Database Schema (4 tables) &amp; Security Notes</h2>
+            <pre class="text-xs font-mono bg-black text-emerald-300 p-4 rounded-2xl overflow-x-auto custom-scroll leading-relaxed">
+-- users: owner profile and PBKDF2-SHA-256 password hash
+-- sessions: hashed server-side session tokens and expiry
+-- devices: registered browser/device records and revocation timestamp
+-- files: private R2 object key and file metadata
+-- Not implemented: OAuth connections, provider allocation, backup jobs, checksum ledger, security audit ledger            </pre>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // MAIN APPLICATION SHELL
+    // ==========================================
+    function render() {
+      const app = document.getElementById('app');
+      if (!app) return;
+
+      if (!state.isAuthenticated) {
+        app.innerHTML = renderWelcomeScreen();
+        return;
+      }
+
+      const navItems = [
+        { id: 'devices_hub', label: 'Registered Devices (Hub)', icon: '📱', badge: state.devices.length },
+        { id: 'network', label: 'My Storage Network', icon: '☁️', badge: state.connectedAccounts.filter(c => c.priority !== null).length },
+        { id: 'companion', label: 'Companion & WorkManager', icon: '⚡', badge: state.backupActivity.length },
+        { id: 'security', label: '6-Layer Security', icon: '🛡️' },
+        { id: 'connections', label: 'All 9 Providers', icon: '🔌' },
+        { id: 'gallery', label: 'Unified Gallery', icon: '🖼️', badge: state.mediaFiles.length },
+        { id: 'architecture', label: 'DB Schema', icon: '🗄️' }
+      ];
+
+      let mainContent = '';
+      if (state.currentTab === 'devices_hub') mainContent = renderDevicesHubTab();
+      else if (state.currentTab === 'network') mainContent = renderStorageNetworkTab();
+      else if (state.currentTab === 'companion') mainContent = renderCompanionTab();
+      else if (state.currentTab === 'security') mainContent = renderSecurityTab();
+      else if (state.currentTab === 'connections') mainContent = renderConnectionsTab();
+      else if (state.currentTab === 'gallery') mainContent = renderUnifiedGalleryTab();
+      else if (state.currentTab === 'architecture') mainContent = renderArchitectureTab();
+
+      app.innerHTML = `
+        <div class="min-h-screen flex flex-col">
+          <!-- Top Header matching "My Private Cloud Hub" -->
+          <header class="sticky top-0 z-30 bg-white/95 dark:bg-[#050507]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/90 px-4 lg:px-8 py-3.5">
+            <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('devices_hub')">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-slate-950 font-extrabold shadow">
+                  ☁️
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-base sm:text-lg tracking-tight">My Private Cloud Hub</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      PRIVATE ACCOUNT
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="lockVaultNow()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs font-semibold text-amber-400" title="Cloudflare Worker session">
+                  🔒 Session active
+                </button>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs">
+                  ${state.darkMode ? '☀️' : '🌙'}
+                </button>
+                <button onclick="switchTab('security')" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs" title="Settings & Security">
+                  ⚙️
+                </button>
+                <button onclick="handleLogout()" class="px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold">
+                  Sign out
+                </button>
+              </div>
+            </div>
+
+            <!-- Navigation Bar -->
+            <nav class="max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto custom-scroll pt-3 pb-1">
+              ${navItems.map(item => `
+                <button onclick="switchTab('${item.id}')" class="px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-2 transition ${
+                  state.currentTab === item.id
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900'
+                }">
+                  <span>${item.icon}</span>
+                  <span>${item.label}</span>
+                  ${item.badge !== undefined ? `<span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono ${state.currentTab === item.id ? 'bg-slate-950 text-emerald-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'}">${item.badge}</span>` : ''}
+                </button>
+              `).join('')}
+            </nav>
+          </header>
+
+          <!-- Main Viewport -->
+          <main class="flex-1 max-w-6xl w-full mx-auto px-4 lg:px-8 py-6">
+            <div role="status" class="mb-5 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs sm:text-sm text-amber-200">
+              <strong>Frontend prototype only.</strong> No real sign-in, cloud provider, device, upload, backup, or database is connected.
+              ${'<div class="mt-1">Only real records returned by the backend are shown.</div>'}
+            </div>
+            ${mainContent}
+          </main>
+        </div>
+      `;
+    }
+
+    window.onload = bootstrap;
+  </script>
+</body>
+</html>
