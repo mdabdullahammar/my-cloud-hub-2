@@ -115,7 +115,14 @@ async function api(request, env) {
   const url = new URL(request.url);
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { "access-control-allow-methods": "GET,POST,PUT,DELETE,OPTIONS", "access-control-allow-headers": "Content-Type,X-Device-Key,X-Device-Id,X-File-Name", "access-control-max-age": "86400" } });
   if (!requireOrigin(request, env)) return json({ error: "Origin not allowed." }, 403);
-  if (request.method === "GET" && url.pathname === "/api/health") return json({ ok: true, service: "My Private Cloud Hub API", database: "bound", storage: env.BUCKET ? "bound" : "not-configured" });
+  if (request.method === "GET" && url.pathname === "/api/health") {
+    try {
+      await env.DB.prepare("SELECT 1 AS ok").first();
+      return json({ ok: true, service: "My Private Cloud Hub API", database: "connected", storage: env.BUCKET ? "bound" : "not-configured" });
+    } catch {
+      return json({ ok: false, service: "My Private Cloud Hub API", database: "unavailable", storage: env.BUCKET ? "bound" : "not-configured" }, 503);
+    }
+  }
   if (request.method === "POST" && url.pathname === "/api/auth/register") return register(request, env);
   if (request.method === "POST" && url.pathname === "/api/auth/login") return login(request, env);
   if (request.method === "POST" && url.pathname === "/api/auth/logout") return logout(request, env);
