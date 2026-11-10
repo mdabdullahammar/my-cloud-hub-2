@@ -1,5 +1,5 @@
 const SESSION_DAYS = 30;
-const PBKDF2_ITERATIONS = 310000;
+const PBKDF2_ITERATIONS = 100000;
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 
 function json(data, status = 200, headers = {}) {
