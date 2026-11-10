@@ -150,7 +150,8 @@ async function api(request, env) {
   }
   if (request.method === "PUT" && url.pathname === "/api/files/upload") {
     if (!env.BUCKET) return json({ error: "R2 bucket binding is not configured." }, 503);
-    const length = Number(request.headers.get("Content-Length") || 0);
+    const fileBytes = await request.arrayBuffer();
+    const length = fileBytes.byteLength;
     if (length > MAX_UPLOAD_BYTES) return json({ error: "File exceeds the 100 MB per-request limit." }, 413);
     const fileName = safeName(decodeURIComponent(request.headers.get("X-File-Name") || "upload.bin"));
     const contentType = request.headers.get("Content-Type") || "application/octet-stream";
@@ -161,7 +162,7 @@ async function api(request, env) {
     }
     const id = randomId("file_");
     const objectKey = `${user.id}/${id}/${fileName}`;
-    const object = await env.BUCKET.put(objectKey, request.body, { httpMetadata: { contentType } });
+    const object = await env.BUCKET.put(objectKey, fileBytes, { httpMetadata: { contentType } });
     await env.DB.prepare("INSERT INTO files(id,user_id,device_id,object_key,file_name,content_type,size_bytes,etag) VALUES(?,?,?,?,?,?,?,?)")
       .bind(id, user.id, deviceId, objectKey, fileName, contentType, length, object.httpEtag || null).run();
     return json({ file: { id, name: fileName, contentType, sizeBytes: length, etag: object.httpEtag }, uploaded: true }, 201);
