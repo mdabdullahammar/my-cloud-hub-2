@@ -29,8 +29,7 @@ External Google Drive, OneDrive, Dropbox, Google Photos, pCloud, MEGA and other 
 ## Required Cloudflare setup (owner action)
 
 1. Sign in to the Cloudflare dashboard and select your account.
-2. Create a **D1 database** named `my-private-cloud-hub-db`.
-3. Use the existing D1 database named `my-private-cloud-hub` with Database ID `dcd10925-8bd2-46bc-b229-e15bc3d90215`; verify it matches the Cloudflare Dashboard and `wrangler.toml`.
+2. Use the existing D1 database named `my-private-cloud-hub` with Database ID `dcd10925-8bd2-46bc-b229-e15bc3d90215`; verify it matches the Cloudflare Dashboard and `wrangler.toml`.
 4. Create a **private R2 bucket** named `my-private-cloud-hub-files`.
 5. In GitHub, open this repository's **Settings → Secrets and variables → Actions** and add:
    - `CLOUDFLARE_API_TOKEN` — token with Workers Scripts:Edit, D1:Edit, R2:Edit, and Account:Read permissions for the correct account.
@@ -49,7 +48,7 @@ Install Node.js 22+, then:
 ```bash
 npm install
 npx wrangler login
-npx wrangler d1 migrations apply my-private-cloud-hub-db --local
+npx wrangler d1 migrations apply my-private-cloud-hub --local
 mkdir -p public && cp index.html public/index.html
 npm run dev
 ```
