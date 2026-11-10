@@ -211,480 +211,6 @@
       'Other Folders'
     ];
 
-    const DEMO_DATASET = {
-      connectedAccounts: [
-        {
-          id: 'conn_r2_primary',
-          providerId: 'cloudflare_r2',
-          label: 'Cloudflare R2 — Storage 01',
-          subtitle: 'Primary Storage',
-          accountIdentifier: 'r2-vault-prod (Account #8841a9)',
-          status: 'HEALTHY',
-          statusBadge: 'Active',
-          usedGB: 650.0,
-          totalGB: 1000,
-          scope: 's3:PutObject, s3:GetObject, s3:ListBucket (Private Bucket)',
-          connectedAt: '2026-10-14 09:15 UTC',
-          lastVerified: '2 mins ago',
-          priority: 1,
-          thresholdPct: 85,
-          enabledForUploads: true,
-          role: 'PRIMARY'
-        },
-        {
-          id: 'conn_onedrive_1',
-          providerId: 'onedrive',
-          label: 'Storage Provider 02 (OneDrive M365)',
-          subtitle: 'Secondary Storage',
-          accountIdentifier: 'demo.owner@example.test',
-          status: 'HEALTHY',
-          statusBadge: 'Active',
-          usedGB: 204.8,
-          totalGB: 1024,
-          scope: 'Files.ReadWrite.AppFolder, offline_access',
-          connectedAt: '2026-10-18 14:22 UTC',
-          lastVerified: '5 mins ago',
-          priority: 2,
-          thresholdPct: 90,
-          enabledForUploads: true,
-          role: 'SECONDARY'
-        },
-        {
-          id: 'conn_dropbox_3',
-          providerId: 'dropbox',
-          label: 'Storage Provider 03 (Dropbox Vault)',
-          subtitle: 'Future / Overflow Storage',
-          accountIdentifier: 'demo.vault@example.test',
-          status: 'HEALTHY',
-          statusBadge: 'Standby',
-          usedGB: 0.0,
-          totalGB: 500,
-          scope: 'files.content.write, files.content.read',
-          connectedAt: '2026-10-20 18:40 UTC',
-          lastVerified: '11 mins ago',
-          priority: 3,
-          thresholdPct: 90,
-          enabledForUploads: true,
-          role: 'ADDITIONAL'
-        },
-        {
-          id: 'conn_gdrive_1',
-          providerId: 'google_drive',
-          label: 'Google Drive — Account 1 (demo.owner@example.test)',
-          subtitle: 'External Cloud / Narrow Drive Scope',
-          accountIdentifier: 'demo.owner@example.test',
-          status: 'HEALTHY',
-          statusBadge: 'External Ready',
-          usedGB: 11.2,
-          totalGB: 15,
-          scope: 'https://www.googleapis.com/auth/drive.file',
-          connectedAt: '2026-10-25 11:05 UTC',
-          lastVerified: '8 mins ago',
-          priority: null,
-          thresholdPct: null,
-          enabledForUploads: false,
-          role: 'EXTERNAL_LIBRARY'
-        },
-        {
-          id: 'conn_gphotos_1',
-          providerId: 'google_photos',
-          label: 'Google Photos — Picker Session (demo.owner@example.test)',
-          subtitle: 'External Cloud Library',
-          accountIdentifier: 'demo.owner@example.test',
-          status: 'PICKER_READY',
-          statusBadge: 'Picker Active',
-          usedGB: null,
-          totalGB: null,
-          scope: 'photospicker.mediaitems.readonly (Session-Scoped)',
-          connectedAt: '2026-11-01 16:30 UTC',
-          lastVerified: 'Session On-Demand',
-          priority: null,
-          thresholdPct: null,
-          enabledForUploads: false,
-          role: 'IMPORT_ONLY'
-        }
-      ],
-      devices: [
-        {
-          id: 'dev_01_samsung',
-          code: 'Device 01',
-          name: 'Samsung Galaxy',
-          type: 'Android Phone',
-          platformLabel: 'Android',
-          onlineStatus: 'Online',
-          osVersion: 'Android 15 • Companion WorkManager v1.2',
-          googleEmail: 'demo.owner@example.test',
-          deviceFingerprint: 'andr-01-s24u-9948a',
-          lastActive: 'Just now',
-          backedUpFiles: 1250,
-          backupSizeGB: 18.4,
-          lastBackupTime: 'Today, 20:41',
-          backupMode: 'AUTOMATIC',
-          wifiOnly: true,
-          folders: ['Camera', 'Screenshots', 'WhatsApp Images', 'WhatsApp Videos', 'Downloads']
-        },
-        {
-          id: 'dev_02_second_android',
-          code: 'Device 02',
-          name: 'Second Android Phone',
-          type: 'Android Phone',
-          platformLabel: 'Android',
-          onlineStatus: 'Offline',
-          osVersion: 'Android 14 • Companion WorkManager v1.2',
-          googleEmail: 'demo.second@example.test',
-          deviceFingerprint: 'andr-02-px8p-3310b',
-          lastActive: '3 hours ago',
-          backedUpFiles: 680,
-          backupSizeGB: 9.2,
-          lastBackupTime: 'Today, 17:15',
-          backupMode: 'AUTOMATIC',
-          wifiOnly: true,
-          folders: ['Camera', 'Pictures', 'Downloads']
-        },
-        {
-          id: 'dev_03_windows',
-          code: 'Device 03',
-          name: 'Windows Computer',
-          type: 'Windows PC',
-          platformLabel: 'Desktop',
-          onlineStatus: 'Online',
-          osVersion: 'Windows 11 Pro 24H2 • Desktop Agent',
-          googleEmail: 'demo.owner@example.test',
-          deviceFingerprint: 'win11-03-ws01-88b4c',
-          lastActive: '4 mins ago',
-          backedUpFiles: 320,
-          backupSizeGB: 64.7,
-          lastBackupTime: 'Yesterday, 23:10',
-          backupMode: 'MANUAL',
-          wifiOnly: false,
-          folders: ['Pictures', 'Downloads', 'Other Folders']
-        },
-        {
-          id: 'dev_04_iphone',
-          code: 'Device 04',
-          name: 'iPhone 16 Pro',
-          type: 'iPhone',
-          platformLabel: 'iOS',
-          onlineStatus: 'Online',
-          osVersion: 'iOS 19 • Companion Sync',
-          googleEmail: 'demo.owner@example.test',
-          deviceFingerprint: 'ios-04-ip16p-7721d',
-          lastActive: '19 mins ago',
-          backedUpFiles: 410,
-          backupSizeGB: 12.1,
-          lastBackupTime: 'Today, 18:02',
-          backupMode: 'AUTOMATIC',
-          wifiOnly: true,
-          folders: ['Camera', 'Screenshots']
-        },
-        {
-          id: 'dev_05_laptop',
-          code: 'Device 05',
-          name: 'MacBook Pro Studio Laptop',
-          type: 'Laptop',
-          platformLabel: 'Laptop',
-          onlineStatus: 'Offline',
-          osVersion: 'macOS Sequoia • Desktop Agent',
-          googleEmail: 'demo.third@example.test',
-          deviceFingerprint: 'mac-05-mbp16-5501e',
-          lastActive: 'Yesterday',
-          backedUpFiles: 195,
-          backupSizeGB: 22.8,
-          lastBackupTime: '2 days ago',
-          backupMode: 'MANUAL',
-          wifiOnly: false,
-          folders: ['Pictures', 'Downloads']
-        }
-      ],
-      mediaFiles: [
-        // Samsung Galaxy (dev_01_samsung) Backed-up Files across specific folders
-        {
-          id: 'med_01',
-          filename: 'IMG_20261109_Camera_ Sunset_RAW.DNG',
-          format: 'DNG (RAW)',
-          type: 'PHOTO',
-          sizeMB: 42.8,
-          resolution: '4000 × 3000 (12MP 16-bit)',
-          captureDate: '2026-11-09 17:42:10',
-          deviceId: 'dev_01_samsung',
-          deviceName: 'Samsung Galaxy',
-          folderCategory: 'Camera',
-          folderPath: '/storage/emulated/0/DCIM/Camera/IMG_20261109_Camera_Sunset_RAW.DNG',
-          providerAccountId: 'conn_r2_primary',
-          providerLabel: 'Cloudflare R2 — Storage 01',
-          objectKey: 'r2://pch-private-vault/dev_01_samsung/Camera/IMG_20261109_Camera_Sunset_RAW.DNG',
-          checksum: 'sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-emerald-500/30 via-teal-600/20 to-slate-900'
-        },
-        {
-          id: 'med_02',
-          filename: 'VID_20261108_Camera_4K60_Walk.MP4',
-          format: 'MP4 (HEVC 4K)',
-          type: 'VIDEO',
-          sizeMB: 318.5,
-          resolution: '3840 × 2160 @ 60fps',
-          captureDate: '2026-11-08 16:10:00',
-          deviceId: 'dev_01_samsung',
-          deviceName: 'Samsung Galaxy',
-          folderCategory: 'Camera',
-          folderPath: '/storage/emulated/0/DCIM/Camera/VID_20261108_Camera_4K60_Walk.MP4',
-          providerAccountId: 'conn_r2_primary',
-          providerLabel: 'Cloudflare R2 — Storage 01',
-          objectKey: 'r2://pch-private-vault/dev_01_samsung/Camera/VID_20261108_Camera_4K60_Walk.MP4',
-          checksum: 'sha256:4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-indigo-500/30 via-blue-600/20 to-slate-900'
-        },
-        {
-          id: 'med_03',
-          filename: 'Screenshot_20261109_BankingReceipt.PNG',
-          format: 'PNG (Lossless)',
-          type: 'PHOTO',
-          sizeMB: 3.4,
-          resolution: '1440 × 3120',
-          captureDate: '2026-11-09 11:20:04',
-          deviceId: 'dev_01_samsung',
-          deviceName: 'Samsung Galaxy',
-          folderCategory: 'Screenshots',
-          folderPath: '/storage/emulated/0/Pictures/Screenshots/Screenshot_20261109_BankingReceipt.PNG',
-          providerAccountId: 'conn_onedrive_1',
-          providerLabel: 'Storage Provider 02 (OneDrive M365)',
-          objectKey: 'onedrive://root:/PersonalCloudHub/dev_01_samsung/Screenshots/Screenshot_20261109_BankingReceipt.PNG',
-          checksum: 'sha256:7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-sky-500/30 via-cyan-600/20 to-slate-900'
-        },
-        {
-          id: 'med_04',
-          filename: 'IMG-20261107-WA0018_FamilyDinner.JPG',
-          format: 'JPEG (Original)',
-          type: 'PHOTO',
-          sizeMB: 5.2,
-          resolution: '3024 × 4032',
-          captureDate: '2026-11-07 21:45:12',
-          deviceId: 'dev_01_samsung',
-          deviceName: 'Samsung Galaxy',
-          folderCategory: 'WhatsApp Images',
-          folderPath: '/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images/IMG-20261107-WA0018.JPG',
-          providerAccountId: 'conn_r2_primary',
-          providerLabel: 'Cloudflare R2 — Storage 01',
-          objectKey: 'r2://pch-private-vault/dev_01_samsung/WhatsApp_Images/IMG-20261107-WA0018.JPG',
-          checksum: 'sha256:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-green-500/30 via-emerald-600/20 to-slate-900'
-        },
-        {
-          id: 'med_05',
-          filename: 'VID-20261106-WA0004_EventClip.MP4',
-          format: 'MP4 (H.264)',
-          type: 'VIDEO',
-          sizeMB: 28.9,
-          resolution: '1920 × 1080 @ 30fps',
-          captureDate: '2026-11-06 18:12:30',
-          deviceId: 'dev_01_samsung',
-          deviceName: 'Samsung Galaxy',
-          folderCategory: 'WhatsApp Videos',
-          folderPath: '/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Videos/VID-20261106-WA0004.MP4',
-          providerAccountId: 'conn_r2_primary',
-          providerLabel: 'Cloudflare R2 — Storage 01',
-          objectKey: 'r2://pch-private-vault/dev_01_samsung/WhatsApp_Videos/VID-20261106-WA0004.MP4',
-          checksum: 'sha256:3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-teal-500/30 via-emerald-700/20 to-slate-900'
-        },
-        {
-          id: 'med_06',
-          filename: 'Architectural_Blueprint_Export.PNG',
-          format: 'PNG',
-          type: 'PHOTO',
-          sizeMB: 14.6,
-          resolution: '4096 × 2160',
-          captureDate: '2026-11-05 10:05:00',
-          deviceId: 'dev_01_samsung',
-          deviceName: 'Samsung Galaxy',
-          folderCategory: 'Downloads',
-          folderPath: '/storage/emulated/0/Download/Architectural_Blueprint_Export.PNG',
-          providerAccountId: 'conn_onedrive_1',
-          providerLabel: 'Storage Provider 02 (OneDrive M365)',
-          objectKey: 'onedrive://root:/PersonalCloudHub/dev_01_samsung/Downloads/Architectural_Blueprint_Export.PNG',
-          checksum: 'sha256:5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-amber-500/30 via-orange-600/20 to-slate-900'
-        },
-        // Second Android Phone (dev_02_second_android)
-        {
-          id: 'med_07',
-          filename: 'PIXEL_20261108_NightSight_Astrophotography.DNG',
-          format: 'DNG (RAW)',
-          type: 'PHOTO',
-          sizeMB: 38.2,
-          resolution: '4080 × 3072',
-          captureDate: '2026-11-08 23:19:44',
-          deviceId: 'dev_02_second_android',
-          deviceName: 'Second Android Phone',
-          folderCategory: 'Camera',
-          folderPath: '/storage/emulated/0/DCIM/Camera/PIXEL_20261108_NightSight.DNG',
-          providerAccountId: 'conn_r2_primary',
-          providerLabel: 'Cloudflare R2 — Storage 01',
-          objectKey: 'r2://pch-private-vault/dev_02_second_android/Camera/PIXEL_20261108_NightSight.DNG',
-          checksum: 'sha256:aa11bb22cc33dd44ee55ff6677889900aabbccddeeff00112233445566778899',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-purple-500/30 via-indigo-700/20 to-slate-900'
-        },
-        // Windows Computer (dev_03_windows) — Shares demo.owner@example.test with Samsung Galaxy but kept 100% separate!
-        {
-          id: 'med_08',
-          filename: 'StudioMaster_Render_8K_Final.TIFF',
-          format: 'TIFF (Uncompressed)',
-          type: 'PHOTO',
-          sizeMB: 128.5,
-          resolution: '7680 × 4320 (8K)',
-          captureDate: '2026-11-05 14:20:19',
-          deviceId: 'dev_03_windows',
-          deviceName: 'Windows Computer',
-          folderCategory: 'Pictures',
-          folderPath: 'C:/Users/Ammar/Pictures/StudioMaster_Render_8K_Final.TIFF',
-          providerAccountId: 'conn_r2_primary',
-          providerLabel: 'Cloudflare R2 — Storage 01',
-          objectKey: 'r2://pch-private-vault/dev_03_windows/Pictures/StudioMaster_Render_8K_Final.TIFF',
-          checksum: 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-          status: 'Completed',
-          isExternal: false,
-          gradient: 'from-cyan-500/30 via-blue-700/20 to-slate-900'
-        }
-      ],
-      // External Google Account Cloud Libraries (NOT backed up to R2; live in Google's own cloud)
-      externalGoogleItems: [
-        {
-          id: 'gext_01',
-          googleEmail: 'demo.owner@example.test',
-          filename: 'CoxsBazar_Tour_2026_Original.HEIC',
-          format: 'HEIC',
-          type: 'PHOTO',
-          sizeMB: 9.4,
-          resolution: '4032 × 3024',
-          captureDate: '2026-10-28',
-          sources: ['Google Photos (Picker API)', 'Google Drive (/My Drive/Photos/2026)'],
-          dualSource: true,
-          note: 'Present in both Google Drive & Google Photos under demo.owner@example.test — Displayed as unified 2-source reference without re-uploading to R2.'
-        },
-        {
-          id: 'gext_02',
-          googleEmail: 'demo.owner@example.test',
-          filename: 'Passport_And_NationalID_Scan.PDF.JPG',
-          format: 'JPEG',
-          type: 'PHOTO',
-          sizeMB: 4.1,
-          resolution: '2480 × 3508',
-          captureDate: '2026-09-14',
-          sources: ['Google Drive (/My Drive/Personal Vault)'],
-          dualSource: false,
-          note: 'External Google Drive file accessed via narrow scope. Remains in Google Cloud; 0 bytes used on R2.'
-        },
-        {
-          id: 'gext_03',
-          googleEmail: 'demo.owner@example.test',
-          filename: 'Family_Eid_Gathering_4K.MP4',
-          format: 'MP4',
-          type: 'VIDEO',
-          sizeMB: 412.0,
-          resolution: '3840 × 2160',
-          captureDate: '2026-06-17',
-          sources: ['Google Photos (Picker API)'],
-          dualSource: false,
-          note: 'Selected via Official Google Photos Picker API. Streamed directly from Google Cloud without copying to Personal Storage.'
-        },
-        {
-          id: 'gext_04',
-          googleEmail: 'demo.second@example.test',
-          filename: 'Field_Research_Notes_Scan.PNG',
-          format: 'PNG',
-          type: 'PHOTO',
-          sizeMB: 6.8,
-          resolution: '1920 × 1080',
-          captureDate: '2026-11-02',
-          sources: ['Google Drive (/My Drive/FieldWork)', 'Google Photos (Picker API)'],
-          dualSource: true,
-          note: 'Account-scoped to demo.second@example.test across both Drive & Photos.'
-        }
-      ],
-      backupActivity: [
-        {
-          id: 'job_101',
-          filename: 'IMG_20261109_204012_RAW.DNG',
-          sizeMB: 45.2,
-          sourceDevice: 'Samsung Galaxy (Device 01)',
-          destinationProvider: 'Cloudflare R2 — Storage 01',
-          status: 'Completed',
-          progress: 100,
-          timestamp: '2026-11-09 20:41:02',
-          checksumVerified: true,
-          localDeleteSafe: true,
-          errorInfo: null
-        },
-        {
-          id: 'job_102',
-          filename: 'VID_20261109_204500_4K60.MP4',
-          sizeMB: 380.0,
-          sourceDevice: 'Samsung Galaxy (Device 01)',
-          destinationProvider: 'Cloudflare R2 — Storage 01',
-          status: 'Uploading',
-          progress: 64,
-          timestamp: 'WorkManager Active (Wi-Fi)',
-          checksumVerified: false,
-          localDeleteSafe: false,
-          errorInfo: null
-        },
-        {
-          id: 'job_103',
-          filename: 'DSC09502_Panorama_16bit.TIFF',
-          sizeMB: 210.4,
-          sourceDevice: 'Windows Computer (Device 03)',
-          destinationProvider: 'Cloudflare R2 — Storage 01',
-          status: 'Failed',
-          progress: 48,
-          timestamp: '2026-11-09 19:55:18',
-          checksumVerified: false,
-          localDeleteSafe: false,
-          errorInfo: 'Network stream interrupted at chunk 12/25. Local original file strictly locked against deletion until upload + SHA-256 verification succeed.'
-        },
-        {
-          id: 'job_104',
-          filename: 'PIXEL_20261109_Burst09.DNG',
-          sizeMB: 34.0,
-          sourceDevice: 'Second Android Phone (Device 02)',
-          destinationProvider: 'Storage Provider 02 (OneDrive M365)',
-          status: 'Retry Scheduled',
-          progress: 22,
-          timestamp: 'WorkManager Backoff (In 4 mins)',
-          checksumVerified: false,
-          localDeleteSafe: false,
-          errorInfo: 'Temporary HTTP 429 rate-limit; WorkManager scheduled automatic exponential backoff retry.'
-        },
-        {
-          id: 'job_105',
-          filename: 'IMG_20261109_204819.HEIC',
-          sizeMB: 11.4,
-          sourceDevice: 'iPhone 16 Pro (Device 04)',
-          destinationProvider: 'Cloudflare R2 — Storage 01',
-          status: 'Pending',
-          progress: 0,
-          timestamp: 'Waiting for Unmetered Wi-Fi',
-          checksumVerified: false,
-          localDeleteSafe: false,
-          errorInfo: null
-        }
-      ]
-    };
-
     const state = {
       isAuthenticated: false,
       // Master Password & 6-Layer Security Gate (Server-Verified Hash Simulation)
@@ -696,15 +222,15 @@
         id: null, name: 'Local Preview', email: 'Not connected',
         linkedGmails: [], authProvider: 'Authentication not configured', sessionId: null
       },
-      // Empty by default. DEMO_DATASET is loaded only after an explicit demo-preview choice.
-      previewDataMode: 'EMPTY', // 'EMPTY' | 'DEMO'
+      authMode: 'register',
+      authMessage: '',
       currentTab: 'devices_hub', // 'devices_hub' | 'network' | 'connections' | 'gallery' | 'activity' | 'companion' | 'security' | 'architecture'
       // Drill-down state inside "devices_hub"
       activeDeviceId: null, // null = show Registered Devices list (Image 1); if set, can view dual-box or drill into 'DEVICE_GALLERY' or 'GOOGLE_LIBRARY'
       activeDeviceSubView: 'DUAL_BOX', // 'DUAL_BOX' (Image 2) | 'DEVICE_GALLERY' | 'GOOGLE_LIBRARY'
       activeDeviceFolder: 'All Photos',
       deviceGallerySortOrder: 'DESC', // 'DESC' | 'ASC'
-      selectedGoogleAccountForLibrary: 'demo.owner@example.test',
+      selectedGoogleAccountForLibrary: '',
       // Global settings & modes
       settingsSubTab: 'security_layers',
       darkMode: true,
@@ -761,30 +287,6 @@
       });
     }
 
-    function setPreviewMode(mode) {
-      state.previewDataMode = mode;
-      state.selectedMediaIds = [];
-      state.activeDeviceId = null;
-      if (mode === 'EMPTY') {
-        state.connectedAccounts = [];
-        state.devices = [];
-        state.mediaFiles = [];
-        state.externalGoogleItems = [];
-        state.backupActivity = [];
-        addAuditLog('EMPTY_PREVIEW_SELECTED', 'Returned to an empty local preview; no live account data is connected.');
-        showToast('Empty preview', 'No accounts, devices, files, or backups are connected to this prototype.', 'info');
-      } else {
-        state.connectedAccounts = JSON.parse(JSON.stringify(DEMO_DATASET.connectedAccounts));
-        state.devices = JSON.parse(JSON.stringify(DEMO_DATASET.devices));
-        state.mediaFiles = JSON.parse(JSON.stringify(DEMO_DATASET.mediaFiles));
-        state.externalGoogleItems = JSON.parse(JSON.stringify(DEMO_DATASET.externalGoogleItems));
-        state.backupActivity = JSON.parse(JSON.stringify(DEMO_DATASET.backupActivity));
-        addAuditLog('DEMO_DATA_LOADED', 'Loaded fictional sample records for interface preview only; no accounts or devices were connected.');
-        showToast('Demo sample data loaded', 'These are fictional preview records only. No provider is connected and no files have been uploaded.', 'warn');
-      }
-      render();
-    }
-
     function toggleDarkMode() {
       state.darkMode = !state.darkMode;
       if (state.darkMode) document.documentElement.classList.add('dark');
@@ -792,23 +294,41 @@
       render();
     }
 
-    function handleLogin(startMode = 'EMPTY') {
-      state.isAuthenticated = true;
-      state.isVaultUnlocked = true;
-      state.currentTab = 'devices_hub';
-      state.activeDeviceId = null;
-      setPreviewMode(startMode);
+    const API_BASE = '';
+    async function apiRequest(path, options = {}) {
+      const response = await fetch(API_BASE + path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || ('Request failed (' + response.status + ')'));
+      return data;
     }
-
-    function handleLogout() {
-      state.isAuthenticated = false;
-      state.selectedMediaIds = [];
-      state.activeDeviceId = null;
-      addAuditLog('PREVIEW_CLOSED', 'Closed the local preview session; no server session or token exists.');
-      showToast('Preview closed', 'The local prototype view was closed. No server session or token was revoked.', 'info');
+    function setAuthMode(mode) { state.authMode = mode; state.authMessage = ''; render(); }
+    async function refreshCloudData() {
+      const results = await Promise.all([apiRequest('/api/devices'), apiRequest('/api/files')]);
+      state.devices = (results[0].devices || []).map((d, i) => ({ id:d.id, code:'Device ' + (i+1), name:d.name, type:d.type, platformLabel:d.platform || d.type, onlineStatus:'Registered', osVersion:d.platform || 'Browser registered', googleEmail:state.ownerUser.email, deviceFingerprint:d.deviceKey, lastActive:d.lastSeenAt, backedUpFiles:0, backupSizeGB:0, lastBackupTime:'No backup yet', backupMode:'MANUAL', wifiOnly:true, folders:['Camera','Screenshots','Downloads'] }));
+      state.mediaFiles = (results[1].files || []).map(f => ({ id:f.id, filename:f.name, format:f.contentType, sizeMB:(f.sizeBytes/1048576).toFixed(2), resolution:'Original file', captureDate:f.createdAt, sources:['Cloudflare R2'], note:'File metadata from private database.' }));
       render();
     }
-
+    async function submitAuth() {
+      const email = document.getElementById('auth-email')?.value?.trim();
+      const password = document.getElementById('auth-password')?.value;
+      const displayName = document.getElementById('auth-display-name')?.value?.trim();
+      try {
+        const path = state.authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        const payload = state.authMode === 'register' ? { email, password, displayName } : { email, password };
+        const result = await apiRequest(path, { method:'POST', body:JSON.stringify(payload) });
+        state.isAuthenticated = true;
+        state.ownerUser = { id:result.user.id, name:result.user.displayName, email:result.user.email, linkedGmails:[], authProvider:'Cloudflare Worker Session', sessionId:result.user.id };
+        state.currentTab = 'devices_hub'; state.authMessage = ''; await refreshCloudData();
+      } catch (error) { state.authMessage = error.message; render(); }
+    }
+    async function bootstrap() {
+      try { const result = await apiRequest('/api/auth/me'); state.isAuthenticated = true; state.ownerUser = { id:result.user.id, name:result.user.displayName, email:result.user.email, linkedGmails:[], authProvider:'Cloudflare Worker Session', sessionId:result.user.id }; await refreshCloudData(); }
+      catch { render(); }
+    }
+    async function handleLogout() {
+      try { await apiRequest('/api/auth/logout', { method:'POST', body:'{}' }); } catch {}
+      state.isAuthenticated = false; state.devices = []; state.mediaFiles = []; state.connectedAccounts = []; state.backupActivity = []; render();
+    }
     function lockVaultNow() {
       showToast('Authentication not configured', 'This frontend prototype has no real account login or secure vault. A backend authentication service must be implemented first.', 'warn');
     }
@@ -902,76 +422,17 @@
 
     function openAddDeviceModal() {
       const modal = document.getElementById('modal-container');
-      const nextNum = state.devices.length + 1;
-      modal.innerHTML = `
-        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl fade-in">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-              <div>
-                <h3 class="font-bold text-lg">Create Local Preview Device Card</h3>
-                <p class="text-xs text-amber-300">এটি শুধু এই ব্রাউজারের নমুনা কার্ড; বাস্তবে কোনো ডিভাইস নিবন্ধন বা সংযোগ হবে না।</p>
-              </div>
-              <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200 text-lg">✕</button>
-            </div>
-            <div class="py-4 space-y-3 text-sm">
-              <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1">Device Name</label>
-                <input id="new-dev-name" type="text" value="OnePlus 13 Pro" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1">Device Type (Auto-selects Icon)</label>
-                <select id="new-dev-type" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm">
-                  <option value="Android Phone">Android Phone → Smartphone Icon</option>
-                  <option value="iPhone">iPhone → iPhone Icon</option>
-                  <option value="Windows PC">Windows PC → Monitor Icon</option>
-                  <option value="Laptop">Laptop → Laptop Icon</option>
-                  <option value="Tablet">Tablet → Tablet Icon</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1">Optional account label (preview only)</label>
-                <input id="new-dev-email" type="text" value="" placeholder="Not linked" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm" />
-              </div>
-            </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-              <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-semibold">Cancel</button>
-              <button onclick="confirmAddDevice(${nextNum})" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">Register Independent Device</button>
-            </div>
-          </div>
-        </div>
-      `;
+      modal.innerHTML = '<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"><div class="bg-slate-900 rounded-2xl max-w-lg w-full p-6 space-y-4"><h3 class="font-bold text-lg">Register This Device</h3><p class="text-xs text-emerald-300">এই ডিভাইসটি Cloudflare D1 Database-এ নিবন্ধিত হবে।</p><input id="new-dev-name" maxlength="80" required placeholder="Device name" class="w-full px-3 py-2 rounded-xl bg-black border border-slate-700"/><select id="new-dev-type" class="w-full px-3 py-2 rounded-xl bg-black border border-slate-700"><option>Android Phone</option><option>iPhone</option><option>Windows PC</option><option>Laptop</option><option>Tablet</option></select><div class="flex justify-end gap-2"><button onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded-xl">Cancel</button><button onclick="confirmAddDevice()" class="px-4 py-2 bg-emerald-600 rounded-xl">Register Device</button></div></div></div>';
     }
-
-    function confirmAddDevice(nextNum) {
-      const name = document.getElementById('new-dev-name')?.value || `Device 0${nextNum}`;
-      const type = document.getElementById('new-dev-type')?.value || 'Android Phone';
-      const email = document.getElementById('new-dev-email')?.value || 'Not linked';
-
-      const newDev = {
-        id: 'dev_custom_' + Date.now(),
-        code: `Device 0${nextNum}`,
-        name,
-        type,
-        platformLabel: type,
-        onlineStatus: 'Not connected',
-        osVersion: `${type} • Local preview card only`,
-        googleEmail: email,
-        deviceFingerprint: `dev-0${nextNum}-${Math.floor(1000 + Math.random() * 9000)}`,
-        lastActive: 'Just now',
-        backedUpFiles: 0,
-        backupSizeGB: 0.0,
-        lastBackupTime: 'Ready for first backup',
-        backupMode: 'AUTOMATIC',
-        wifiOnly: true,
-        folders: ['Camera', 'Screenshots', 'Downloads']
-      };
-      state.devices.push(newDev);
-      addAuditLog('LOCAL_DEVICE_DRAFT_CREATED', `Created a local preview card for ${name} (${type}); no device token or backend registration exists.`);
-      closeModal();
-      showToast('Local preview card created', `${name} is shown only in this browser preview. It is not registered, online, or connected to a backup service.`, 'warn');
-      render();
+    async function confirmAddDevice() {
+      const name=document.getElementById('new-dev-name')?.value?.trim(); const type=document.getElementById('new-dev-type')?.value || 'Android Phone';
+      if(!name){showToast('Name required','Enter a device name.','warn');return;}
+      try {
+        let deviceKey=localStorage.getItem('hub_device_key'); if(!deviceKey){deviceKey=crypto.randomUUID().replace(/-/g,'');localStorage.setItem('hub_device_key',deviceKey);}
+        await apiRequest('/api/devices/register',{method:'POST',body:JSON.stringify({deviceKey,name,type,platform:navigator.platform || navigator.userAgent})});
+        closeModal(); await refreshCloudData(); showToast('Device registered','Saved to your private D1 database.','success');
+      } catch(error){showToast('Registration failed',error.message,'warn');}
     }
-
     function revokeLostDevice() {
       showToast('Device revocation unavailable', 'No real device tokens or backend access controls are configured. This prototype cannot revoke a device.', 'warn');
     }
@@ -1140,68 +601,20 @@
     // SCREEN 0: WELCOME / LOGIN & VAULT LOCK GATE
     // ==========================================
     function renderWelcomeScreen() {
-      return `
-        <div class="min-h-screen flex flex-col justify-between bg-[#050507] text-white p-6">
-          <div class="max-w-6xl w-full mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/30">
-                <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-              </div>
-              <div>
-                <span class="font-bold text-lg tracking-tight">My Private Cloud Hub</span>
-                <span class="ml-2 text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">Device-First Personal Cloud</span>
-              </div>
-            </div>
-            <div class="text-xs text-slate-400 font-mono hidden sm:block">
-FRONTEND PREVIEW • NO LIVE STORAGE
-            </div>
-          </div>
-
-          <div class="max-w-md w-full mx-auto my-auto py-10">
-            <div class="bg-[#0c0d10] border border-slate-800/90 rounded-3xl p-8 shadow-2xl space-y-6">
-              <div class="space-y-2 text-center">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  Device-Centric Architecture + 6-Layer Security
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">My Private Cloud Hub</h1>
-                <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  প্রবেশ করার পর প্রথমে কোনো এলোমেলো ছবি আসবে না—প্রথমে আসবে আপনার <strong>Registered Devices</strong> তালিকা এবং প্রতিটি ডিভাইসের নিচে <strong>Device Gallery</strong> ও <strong>Google Library</strong>।
-                </p>
-              </div>
-
-              <div class="space-y-3 pt-2">
-                <button onclick="handleLogin('EMPTY')" class="w-full py-3.5 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 transition-all">
-                  <svg class="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#050507" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                  </svg>
-                  <span>Open Empty Workspace Preview →</span>
-                </button>
-
-                <button onclick="handleLogin('DEMO')" class="w-full py-2.5 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-medium text-xs transition-all">
-                  View Fictional Demo Sample Data (Preview Only)
-                </button>
-              </div>
-
-              <div class="p-4 rounded-2xl bg-black/60 border border-slate-800/80 space-y-2 text-xs text-slate-400">
-                <div class="font-semibold text-slate-200">নতুন যুক্ত হওয়া প্রধান বৈশিষ্ট্যসমূহ:</div>
-                <ul class="space-y-1 list-disc list-inside">
-                  <li><strong>Image 1 (Registered Devices First):</strong> একই Gmail হলেও প্রতিটি ডিভাইস আলাদা Card ও স্বয়ংক্রিয় Icon পাবে।</li>
-                  <li><strong>Image 2 (Dual Side-by-Side Boxes):</strong> প্রতিটি ডিভাইসের জন্য আলাদা <em>Device Gallery</em> (নিজস্ব R2/Personal Backup) এবং <em>Google Library</em> (External Cloud)।</li>
-                  <li><strong>Image 3 (My Storage Network):</strong> Primary, Secondary ও Standby Overflow Storage Allocation।</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div class="max-w-6xl w-full mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-            <div>My Private Cloud Hub — Independent Personal Cloud System</div>
-            <div>Prototype preview • No live authentication or cloud connections</div>
-          </div>
-        </div>
-      `;
+      return '<div class="min-h-screen flex flex-col justify-between bg-[#050507] text-white p-6">' +
+        '<div class="max-w-6xl w-full mx-auto flex items-center gap-3"><div class="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center">☁️</div><b>My Private Cloud Hub</b></div>' +
+        '<div class="max-w-md w-full mx-auto my-auto py-10"><div class="bg-[#0c0d10] border border-slate-800 rounded-3xl p-8 space-y-5">' +
+        '<h1 class="text-2xl font-bold text-center">Private Account</h1><p class="text-sm text-slate-400">প্রথমবার Owner Account তৈরি করুন। পরে Login করুন।</p>' +
+        '<div class="flex gap-2"><button onclick="setAuthMode(\'register\')" class="flex-1 py-2 rounded-lg bg-slate-800">Create Owner Account</button><button onclick="setAuthMode(\'login\')" class="flex-1 py-2 rounded-lg bg-slate-800">Login</button></div>' +
+        '<form onsubmit="event.preventDefault();submitAuth()" class="space-y-3">' +
+        (state.authMode === 'register' ? '<input id="auth-display-name" required maxlength="80" placeholder="Your name" class="w-full px-4 py-3 rounded-xl bg-black border border-slate-800" />' : '') +
+        '<input id="auth-email" type="email" required placeholder="Email address" autocomplete="username" class="w-full px-4 py-3 rounded-xl bg-black border border-slate-800" />' +
+        '<input id="auth-password" type="password" minlength="12" required placeholder="Password (minimum 12 characters)" autocomplete="current-password" class="w-full px-4 py-3 rounded-xl bg-black border border-slate-800" />' +
+        '<button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 text-black font-bold">' + (state.authMode === 'register' ? 'Create Owner Account' : 'Login Securely') + '</button></form>' +
+        (state.authMessage ? '<div role="alert" class="text-rose-300 text-xs">' + state.authMessage + '</div>' : '') +
+        '<p class="text-xs text-slate-500">প্রথম অ্যাকাউন্ট তৈরি হলে নতুন public registration বন্ধ থাকবে। Cloudflare Backend চালু না থাকলে Login কাজ করবে না।</p></div></div>' +
+        '<div class="text-center text-xs text-slate-600">No demo accounts, sample files or sample devices.</div></div>';
     }
-
     function renderVaultLockScreen() {
       return `
         <div class="min-h-screen flex items-center justify-center bg-[#050507] text-white p-6">
@@ -1273,7 +686,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
             </div>
             <div class="flex flex-wrap items-center gap-2 shrink-0">
               <button onclick="openAddDeviceModal()" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold">
-                + Add Local Preview Card
+                + Register Device
               </button>
               <button onclick="setPreviewMode(state.previewDataMode === 'EMPTY' ? 'DEMO' : 'EMPTY')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">
                 ${state.previewDataMode === 'EMPTY' ? 'Load Populated Demo (3+ Devices)' : 'Switch to 0-State Empty Mode'}
@@ -1296,7 +709,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
             <div class="p-10 rounded-3xl bg-[#0c0d10] border border-slate-800 text-center space-y-4">
               <div class="text-lg font-bold">0 Registered Devices (First-Time Empty State)</div>
               <p class="text-xs text-slate-400 max-w-md mx-auto">
-                আপনার অ্যাকাউন্টে এখনো কোনো ডিভাইস নিবন্ধিত হয়নি। নতুন ডিভাইস যুক্ত করতে "+ Add Local Preview Card" বাটনে ক্লিক করুন অথবা "Load Populated Demo" চালু করুন।
+                আপনার অ্যাকাউন্টে এখনো কোনো ডিভাইস নিবন্ধিত হয়নি। বাস্তব নিবন্ধনের জন্য Register Device চাপুন।
               </p>
               <div class="flex justify-center gap-3">
                 <button onclick="openAddDeviceModal()" class="px-4 py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">+ Add First Preview Card</button>
@@ -2232,7 +1645,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
                   <div class="flex items-center gap-2">
                     <span class="font-bold text-base sm:text-lg tracking-tight">My Private Cloud Hub</span>
                     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                      ${state.previewDataMode === 'EMPTY' ? '0-STATE EMPTY' : 'DEVICE-FIRST PREVIEW'}
+                      PRIVATE ACCOUNT
                     </span>
                   </div>
                 </div>
@@ -2282,7 +1695,7 @@ FRONTEND PREVIEW • NO LIVE STORAGE
       `;
     }
 
-    window.onload = render;
+    window.onload = bootstrap;
   </script>
 </body>
 </html>
