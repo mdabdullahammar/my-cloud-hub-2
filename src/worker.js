@@ -69,8 +69,9 @@ async function register(request, env) {
   const userId = randomId("usr_");
   const displayName = String(data.displayName || data.email.split("@")[0]).trim().slice(0, 80);
   try {
-    await env.DB.prepare("INSERT INTO users (id,email,display_name,password_hash,password_salt,password_iterations) VALUES (?,?,?,?,?,?)")
+    const created = await env.DB.prepare("INSERT INTO users (id,email,display_name,password_hash,password_salt,password_iterations) SELECT ?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM users)")
       .bind(userId, data.email.trim().toLowerCase(), displayName, hash, salt, PBKDF2_ITERATIONS).run();
+    if (!created.meta.changes) return json({ error: "Owner account already exists. Public sign-up is closed." }, 403);
   } catch {
     return json({ error: "Account could not be created. The owner account may already exist." }, 409);
   }
@@ -150,9 +151,8 @@ async function api(request, env) {
   }
   if (request.method === "PUT" && url.pathname === "/api/files/upload") {
     if (!env.BUCKET) return json({ error: "R2 bucket binding is not configured." }, 503);
-    const fileBytes = await request.arrayBuffer();
-    const length = fileBytes.byteLength;
-    if (length > MAX_UPLOAD_BYTES) return json({ error: "File exceeds the 100 MB per-request limit." }, 413);
+    const declaredLength = Number(request.headers.get("Content-Length") || 0);
+    if (declaredLength > MAX_UPLOAD_BYTES) return json({ error: "File exceeds the 100 MB per-request limit." }, 413);
     const fileName = safeName(decodeURIComponent(request.headers.get("X-File-Name") || "upload.bin"));
     const contentType = request.headers.get("Content-Type") || "application/octet-stream";
     const deviceId = request.headers.get("X-Device-Id") || null;
@@ -162,10 +162,24 @@ async function api(request, env) {
     }
     const id = randomId("file_");
     const objectKey = `${user.id}/${id}/${fileName}`;
-    const object = await env.BUCKET.put(objectKey, fileBytes, { httpMetadata: { contentType } });
+    let sizeBytes = 0;
+    const sizeGuard = new TransformStream({
+      transform(chunk, controller) {
+        sizeBytes += chunk.byteLength;
+        if (sizeBytes > MAX_UPLOAD_BYTES) throw new Error("UPLOAD_TOO_LARGE");
+        controller.enqueue(chunk);
+      }
+    });
+    let object;
+    try {
+      object = await env.BUCKET.put(objectKey, request.body.pipeThrough(sizeGuard), { httpMetadata: { contentType } });
+    } catch (error) {
+      if (error && error.message === "UPLOAD_TOO_LARGE") return json({ error: "File exceeds the 100 MB per-request limit." }, 413);
+      throw error;
+    }
     await env.DB.prepare("INSERT INTO files(id,user_id,device_id,object_key,file_name,content_type,size_bytes,etag) VALUES(?,?,?,?,?,?,?,?)")
-      .bind(id, user.id, deviceId, objectKey, fileName, contentType, length, object.httpEtag || null).run();
-    return json({ file: { id, name: fileName, contentType, sizeBytes: length, etag: object.httpEtag }, uploaded: true }, 201);
+      .bind(id, user.id, deviceId, objectKey, fileName, contentType, sizeBytes, object.httpEtag || null).run();
+    return json({ file: { id, name: fileName, contentType, sizeBytes, etag: object.httpEtag }, uploaded: true }, 201);
   }
   if (request.method === "GET" && url.pathname.startsWith("/api/files/")) {
     const id = decodeURIComponent(url.pathname.split("/").pop());
