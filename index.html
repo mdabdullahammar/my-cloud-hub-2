@@ -329,7 +329,9 @@
       try { await apiRequest('/api/auth/logout', { method:'POST', body:'{}' }); } catch {}
       state.isAuthenticated = false; state.devices = []; state.mediaFiles = []; state.connectedAccounts = []; state.backupActivity = []; render();
     }
-    function lockVaultNow() { showToast('Session active', 'Your Cloudflare account session is active. Use Sign out to end it.', 'info'); }\n\n    function switchTab(tab) {
+    function lockVaultNow() { showToast('Session active', 'Your Cloudflare account session is active. Use Sign out to end it.', 'info'); }
+
+    function switchTab(tab) {
       state.currentTab = tab;
       if (tab === 'devices_hub') {
         state.activeDeviceId = null;
@@ -425,7 +427,12 @@
         closeModal(); await refreshCloudData(); showToast('Device registered','Saved to your private D1 database.','success');
       } catch(error){showToast('Registration failed',error.message,'warn');}
     }
-    async function revokeLostDevice(deviceId) {\n      try { await apiRequest('/api/devices/' + encodeURIComponent(deviceId), { method: 'DELETE' }); await refreshCloudData(); showToast('Device revoked', 'This device registration was revoked in the database.', 'success'); }\n      catch (error) { showToast('Revocation failed', error.message, 'warn'); }\n    }\n\n    function deleteSelectedDeviceMedia() {
+    async function revokeLostDevice(deviceId) {
+      try { await apiRequest('/api/devices/' + encodeURIComponent(deviceId), { method: 'DELETE' }); await refreshCloudData(); showToast('Device revoked', 'This device registration was revoked in the database.', 'success'); }
+      catch (error) { showToast('Revocation failed', error.message, 'warn'); }
+    }
+
+    function deleteSelectedDeviceMedia() {
       if (state.selectedMediaIds.length === 0) return;
       const count = state.selectedMediaIds.length;
       state.mediaFiles = state.mediaFiles.filter(m => !state.selectedMediaIds.includes(m.id));
@@ -526,7 +533,13 @@
       render();
     }
 
-    function inspectMedia(mediaId) {\n      const item = state.mediaFiles.find(m => m.id === mediaId);\n      if (!item) return;\n      window.location.href = '/api/files/' + encodeURIComponent(mediaId);\n    }\n\n    function retryFailedJob() {
+    function inspectMedia(mediaId) {
+      const item = state.mediaFiles.find(m => m.id === mediaId);
+      if (!item) return;
+      window.location.href = '/api/files/' + encodeURIComponent(mediaId);
+    }
+
+    function retryFailedJob() {
       showToast('Backup not available', 'This prototype cannot upload or verify files. No retry was started and no file status was changed.', 'warn');
     }
 
@@ -1497,7 +1510,8 @@
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2"><input id="upload-file-input" type="file" class="max-w-full text-xs text-slate-300" /><button onclick="uploadSelectedFile()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">Upload to R2</button></div>\n          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div class="flex flex-wrap items-center gap-2"><input id="upload-file-input" type="file" class="max-w-full text-xs text-slate-300" /><button onclick="uploadSelectedFile()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold">Upload to R2</button></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             ${state.mediaFiles.map(m => `
               <div class="p-4 rounded-2xl bg-[#0a0b0e] border border-slate-800 space-y-3">
                 <div class="flex items-center justify-between text-xs">
