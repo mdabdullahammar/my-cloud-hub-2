@@ -681,7 +681,7 @@
                 </span>
               </div>
               <p class="text-xs text-slate-400">
-                একই Gmail (<code class="text-emerald-300">demo.owner@example.test</code>) দিয়ে Samsung Galaxy, Windows Computer ও iPhone যুক্ত থাকলেও প্রতিটি ডিভাইসের আলাদা Card এবং আলাদা ছবির হিসাব রাখা হয়েছে।
+                প্রতিটি নিবন্ধিত ডিভাইসের জন্য আলাদা Card এবং আলাদা ফাইল তালিকা থাকবে।
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-2 shrink-0">
@@ -737,7 +737,7 @@
                           </div>
                         </div>
                         <div class="text-xs text-slate-400 pt-1">
-                          Demo account label: <span class="text-slate-200 font-mono">${dev.googleEmail}</span>
+                          Account: <span class="text-slate-200 font-mono">${dev.googleEmail}</span>
                           <span class="ml-2 text-[11px] font-mono text-slate-500">(ID: ${dev.deviceFingerprint})</span>
                         </div>
                       </div>
@@ -750,7 +750,7 @@
                             ? 'bg-rose-950 border border-rose-500/40 text-rose-400'
                             : 'bg-slate-800 text-slate-300'
                         }">
-                          ${state.previewDataMode === 'DEMO' ? 'DEMO SAMPLE — NOT LIVE' : dev.onlineStatus}
+                          ${dev.onlineStatus}
                         </span>
                       </div>
                     </div>
