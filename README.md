@@ -60,7 +60,7 @@ For production, provision the remote D1 and R2 resources first, then run the Git
 
 - The deployment is not live until the owner completes Cloudflare provisioning and adds GitHub Actions secrets.
 - The current UI's login and device-registration calls require the Worker to be deployed on the same origin as the frontend.
-- R2 upload/download API routes exist, but the gallery's complete upload/download user experience still needs final integration and live testing.
+- The gallery now has a file picker, R2 upload action, and authenticated download links. These require a deployed Worker, D1 database, and R2 bucket, then must be tested with non-sensitive files.
 - Device records are per browser installation. A native Android companion app is required for dependable background camera/photo backup, Android WorkManager scheduling, and system-level device management.
 - Automatic backup, file deduplication, malware scanning, quota enforcement, external cloud-provider OAuth, multi-user support, account recovery and production security review are not yet complete.
 - Test with non-sensitive files first. Keep local originals until upload, download and integrity checks have been verified.
