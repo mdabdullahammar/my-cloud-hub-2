@@ -10,7 +10,7 @@ run_worker_first = ["/api/*"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "my-private-cloud-hub"
+database_name = "my-private-cloud-hub-db"
 database_id = "dcd10925-8bd2-46bc-b229-e15bc3d90215"
 migrations_dir = "migrations"
 
